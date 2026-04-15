@@ -10,6 +10,9 @@ function Home() {
   );
 }
 
+import { NavBar } from './navbar/navbar'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+
 function App() {
   return (
     <Routes>
@@ -18,6 +21,11 @@ function App() {
       <Route path="/aisuggestions" element={<Aisuggestions />} />
     </Routes>
   );
+    <>
+      <NavBar />
+      <h1>Hello World!</h1>
+    </>
+  )
 }
 
 export default App;
