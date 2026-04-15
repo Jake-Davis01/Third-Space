@@ -1,0 +1,32 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;   /* stack vertically */
+  align-items: center;      /* center horizontally */
+  height: 100vh;
+}
+
+.title {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.box-container {
+  display: flex;
+  gap: 20px;
+}
+
+.box {
+  width: 150px;
+  height: 150px;
+  background-color: lightblue;
+  border: 2px solid black;
+}
+
+
+.interest-box {
+  width: 700px;
+  height: 200px;
+  background-color: lightblue;
+  border: 2px solid black;
+  margin-top: 20px
+}
