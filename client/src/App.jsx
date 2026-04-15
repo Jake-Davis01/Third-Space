@@ -1,28 +1,22 @@
-import { Routes, Route, Link } from "react-router-dom";
-import Dashboard from "./Dashboard";
-import Aisuggestions from "./aisuggestions";
-import NavBar from "./navbar/navbar";
+import './css/App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
-function Home() {
-  return (
-    <div>
-      <h1>Home Page</h1>
-      <Link to="/dashboard">Go to Dashboard</Link>
-      <Link to="/aisuggestions">Go to AI Suggestions</Link>
-    </div>
-  );
-}
+import NavBar from './components/navbar'
+import Home from './components/home'
+import Dashboard from "./components/Dashboard";
+import Aisuggestions from "./components/Aisuggestions";
 
 function App() {
   return (
     <>
+    <Router>
       <NavBar />
-
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />}></Route>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/aisuggestions" element={<Aisuggestions />} />
       </Routes>
+    </Router>
     </>
   );
 }

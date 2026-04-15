@@ -1,7 +1,6 @@
-import './Dashboard.css'
 import BarChart from "./BarChart";
 import LineChart from "./LineChart";
-
+import '../css/Dashboard.css'
 
 function Dashboard() {
     return (
