@@ -38,6 +38,7 @@ function Dashboard() {
     };
 
     return (
+        <div className="dashboard-page">
         <div className="dashboard">
             
             <div className="title"><h1>Dashboard Menu</h1></div>
@@ -75,6 +76,7 @@ function Dashboard() {
             
 
 
+        </div>
         </div>
     );
 }
