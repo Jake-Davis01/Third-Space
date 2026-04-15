@@ -1,0 +1,114 @@
+.aisuggestions__container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  border: 5px solid rgb(207, 104, 104);
+  background-color: pink;
+}
+
+.aisuggestions__title {
+  margin-bottom: 10px;
+}
+
+/* layout wrapper */
+.aisuggestions__content {
+  margin-top: 20px;
+  background-color: rgb(196, 241, 255);
+}
+
+/* sections */
+.aisuggestions__section {
+  margin-top: 20px;
+}
+
+.aisuggestions__sectionBox {
+  border: 1px solid black;
+  padding: 16px;
+  border-radius: 10px;
+}
+
+.aisuggestions__sectionTitle {
+  margin-bottom: 12px;
+}
+
+/* CARD GROUP (no gap method) */
+.aisuggestions__cardGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+/* cards */
+.aisuggestions__card {
+  border: 4px solid green;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 140px;
+  background-color: white;
+
+  margin-bottom: 12px; /* spacing between cards */
+}
+
+/* remove last spacing */
+.aisuggestions__cardGroup .aisuggestions__card:last-child {
+  margin-bottom: 0;
+}
+
+/* card layout */
+.aisuggestions__cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 16px;
+  height: 100%;
+}
+
+.aisuggestions__cardBody {
+  flex: 1;
+}
+
+.aisuggestions__cardTitle {
+  display: block;
+}
+
+.aisuggestions__cardText {
+  margin: 4px 0;
+  line-height: 1.4em;
+  max-height: calc(1.4em * 3);
+  overflow: hidden;
+}
+
+/* button */
+.aisuggestions__cardButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 1px solid black;
+  background: none;
+  cursor: pointer;
+  align-self: center;
+}
+
+/* empty cards */
+.aisuggestions__emptyCard {
+  border: 4px solid green;
+  border-radius: 8px;
+  min-height: 140px;
+}
+
+/* idea generator */
+.aisuggestions__textarea {
+  width: 100%;
+  height: 80px;
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 12px;
+  resize: none;
+}
+
+.aisuggestions__generateButton {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid black;
+  background: none;
+  cursor: pointer;
+}
