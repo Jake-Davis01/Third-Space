@@ -29,7 +29,15 @@
     margin-bottom: 0.4rem;
 }
 
+.signUpBtn {
+    text-decoration: underline;
+}
+
+.signUpBtn:hover {
+    cursor: pointer;
+}
+
 .picture-side {
-    background-color: blueviolet;
+    background-color: var(--cerulean);
     width: 50%;
 }
