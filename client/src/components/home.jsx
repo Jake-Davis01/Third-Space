@@ -1,8 +1,8 @@
-import './home.css'
+import '../css/home.css'
 
 import { useState } from "react";
 
-export function Home() {
+function Home() {
     const totalStars = 5;
 
     const [rating, setRating] = useState(0);
@@ -65,3 +65,6 @@ export function Home() {
         </section>
     );
 }
+
+
+export default Home
