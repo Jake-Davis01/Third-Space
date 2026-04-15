@@ -1,0 +1,65 @@
+
+.welcome-user {
+    text-align: center;
+}
+
+
+/*  container syling*/
+
+.container {
+    border: 3px solid blue;
+    border-radius: 14px;
+    background-color: lightblue;
+    padding: 1rem 2rem;
+    margin: 1.5rem;
+}
+
+.container h2 {
+    margin: 1rem 0;
+}
+
+/* innner container syling*/
+.inner-container {
+    border: 5px solid darkviolet;
+    border-radius: 14px;
+    background-color: pink;
+    padding: 0.4rem;
+    
+     
+}
+.inner-container h1 {
+    margin: 0rem;
+}
+.date{
+    margin: 0;
+    font-size: 1rem;
+    font-style: italic;
+
+}
+.details{
+    font-size: 1.3rem;
+}
+.join-button{
+    border-radius: 14px;
+    font-size:1.2rem;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+}
+
+/*  Star rating syling*/
+.star-rating {
+    display: flex;
+    gap: 8px;
+    font-size: 40px;
+}
+
+.star {
+  cursor: pointer;
+  color: lightgray;
+  transition: 0.2s;
+  font-size: 40px;
+}
+
+.star.active {
+  color: gold;
+}
