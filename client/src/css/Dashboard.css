@@ -1,13 +1,37 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+
+  background: linear-gradient(
+    135deg,
+    #2db4d6, 
+    #4b63c6, 
+    #7b2cbf   
+  );
+}
+
 .dashboard {
   display: flex;
-  flex-direction: column;   /* stack vertically */
-  align-items: center;      /* center horizontally */
-  height: 100vh;
+  flex-direction: column;   
+  align-items: center;      
+  width: 1000px;
+
+  background-color: var(--bg-main);  
+  color: var(--text-main);
+
+  margin: 0 auto;
+  border-radius: 25px;
 }
 
 .title {
   margin-top: 40px;
   margin-bottom: 40px;
+  display: flex;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 25px;
+  background-color: var(--bg-dark);
+  color: var(--secondary);
 }
 
 .box-container {
@@ -16,12 +40,13 @@
   padding: 20px;
 }
 
-
 .box {
   width: 150px;
   height: 150px;
-  background-color: lightblue;
-  border: 2px solid black;
+
+  background-color: var(--card-bg);  
+  border: 2px solid var(--border);
+  border-radius: 25px;
 
   display: flex;
   flex-direction: column;  
@@ -30,10 +55,14 @@
 }
 
 .chart-container {
-  width: 780px;
-  height: 500px;
-  display: block;
-  border: 2px solid black;
+  display: flex;
+  width: 800px;
+
+  background-color: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 25px;
+
+  padding: 20px;
 }
 
 .pastevents-box {
@@ -43,39 +72,40 @@
 
   width: 760px;
 
-  background-color: lightblue;
-  border: 2px solid black;
+  background-color: var(--card-bg);
+  border: 2px solid var(--border);
 
   margin-top: 20px;
   margin-bottom: 20px;
 
   align-items: center;  
   padding: 20px; 
+  border-radius: 25px;
 }
 
 .chartbox {
   width: 600px;         
-  height: 20px;          
+  height: 25px;          
 
-  background-color: rgb(221, 168, 158);
-  border: 2px solid black;
+  background-color: var(--secondary); /* was random rgb */
+  color: var(--text-light);
+
+  border: none;
+  border-radius: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   flex-shrink: 0;
 }
 
-
 .box2-container {
-  width: 800px;
-  min-height: 900px;
   display: flex;
   gap: 20px;
+  padding: 20px;
+  width: 800px;
 
-  margin-top: 20px;
-
-  justify-content: center;  /* centers row content */
-  align-items: center;      /* vertical alignment */
-
-    background-color: rgb(241, 215, 210);
-  border: 2px solid black;
+  margin: 0 auto;             
+  justify-content: center;   
 }
-

@@ -1,5 +1,20 @@
 :root {
-  --example: #0026ff;
+  /* Backgrounds */
+  --bg-main: #def1f0;
+  --bg-dark: #1b2440;
+
+  /* Primary / Branding */
+  --primary: #7b2cbf;
+  --secondary: #007ea7;
+
+  /* Neutrals */
+  --text-main: #1b2440;
+  --text-light: #ffffff;
+  --border: #c7cfd0;
+
+  /* UI accents */
+  --card-bg: #ffffff;
+  --hover: #e6f7f6;
 }
 
 
