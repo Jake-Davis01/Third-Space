@@ -13,6 +13,7 @@ function NavBar() {
                 <Link to="/">Profile</Link>
                 <Link to="/dashboard">Dashboard</Link>
                 <Link to="/aisuggestions">AI</Link>
+                <Link to="/signup">SignUp</Link>
             </div>
         </nav>
     );
