@@ -1,0 +1,20 @@
+.navbar {
+    border: 3px solid red;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.navbar .links {
+    margin-left: auto;
+}
+
+.navbar a {
+    border: 3px solid green;
+    margin-left: 2rem;
+    padding: 1rem;
+    background-color: gray;
+    border-radius: 14px;
+    text-decoration: none;
+}
