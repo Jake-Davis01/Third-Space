@@ -1,8 +1,11 @@
 :root {
-  --example: #0026ff;
+    --royal-violet: #7b2cbfff;
+    --space-indigo: #1b2440ff;
+    --silver: #c7cfd0ff;
+    --azure-mist: #def1f0ff;
+    --cerulean: #007ea7ff;
 }
 
-
 body {
-  margin: 0;
+    margin: 0;
 }

@@ -1,6 +1,33 @@
+import { useEffect, useState } from "react";
 import "../css/landingPage.css";
+import { useNavigate } from "react-router-dom";
 
 function LandingPage() {
+    const navigate = useNavigate();
+
+    const [userEmail, setUserEmail] = useState("");
+    const [userPassword, setUserPassword] = useState("");
+
+    const [canLogin, setCanLogin] = useState(false);
+
+    // runs when "canLogin". Should happen when its confirmed user has an account
+    useEffect(() => {
+        if (canLogin) {
+            //for testing, will need to be removed in real version
+            console.log(userEmail, userPassword);
+            navigate("/home");
+        }
+    }, [canLogin]);
+
+    //will need to be updated to check for user account in database
+    function checkDetails() {
+        setCanLogin(true);
+    }
+
+    function signUp() {
+        navigate("/signup")
+    }
+
     return (
         <div className="landingPage">
             <div className="login-side">
@@ -10,17 +37,19 @@ function LandingPage() {
                         type="text"
                         placeholder="email"
                         className="landingPage-input"
+                        onChange={(e) => setUserPassword(e.target.value)}
                     />
                     <br />
                     <input
-                        type="text"
+                        type="password"
                         placeholder="password"
                         className="landingPage-input"
+                        onChange={(e) => setUserEmail(e.target.value)}
                     />
                     <br />
-                    <button>Login</button>
+                    <button onClick={checkDetails}>Login</button>
                     <p>
-                        Need an account? <span>Sign Up</span>
+                        Need an account? <span className="signUpBtn" onClick={signUp}>Sign Up</span>
                     </p>
                 </div>
             </div>
