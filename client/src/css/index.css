@@ -1,9 +1,20 @@
 :root {
-    --royal-violet: #7b2cbfff;
-    --space-indigo: #1b2440ff;
-    --silver: #c7cfd0ff;
-    --azure-mist: #def1f0ff;
-    --cerulean: #007ea7ff;
+  /* Backgrounds */
+  --bg-main: #def1f0;
+  --bg-dark: #1b2440;
+
+  /* Primary / Branding */
+  --primary: #7b2cbf;
+  --secondary: #007ea7;
+
+  /* Neutrals */
+  --text-main: #1b2440;
+  --text-light: #ffffff;
+  --border: #c7cfd0;
+
+  /* UI accents */
+  --card-bg: #ffffff;
+  --hover: #e6f7f6;
 }
 
 body {

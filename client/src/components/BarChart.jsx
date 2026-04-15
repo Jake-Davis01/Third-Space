@@ -20,18 +20,7 @@ ChartJS.register(
   Legend
 );
 
-function BarChart() {
-  const data = {
-    labels: ["Board Games", "Running", "Film", "Reading", "Hiking"],
-    datasets: [
-      {
-        label: "Number of people interested",
-        data: [62, 51, 43,33, 21],
-        backgroundColor: "rgba(235, 54, 54, 0.6)"
-      }
-    ]
-  };
-
+function BarChart({ data, title }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -42,16 +31,16 @@ function BarChart() {
       },
       title: {
         display: true,
-        text: "Top Interests"
+        text: title
       }
     }
   };
 
   return (
-  <div style={{ height: 400, width: 780 }}>
-    <Bar data={data} options={options} />
-  </div>
-);
+    <div style={{ height: 300, width: "100%" }}>
+      <Bar data={data} options={options} />
+    </div>
+  );
 }
 
 export default BarChart;
