@@ -1,0 +1,118 @@
+.signup-section {
+    text-align: center;
+}
+
+.signup-welcome {
+    text-align: center;
+}
+
+.signup-welcome h1 {
+    font-size: 1.4rem;
+}
+
+.signup-container {
+    border: 3px solid blue;
+    border-radius: 14px;
+    background-color: lightblue;
+    padding: 0.5rem 1rem;
+    margin: 0.4rem auto;
+    max-width: 55rem;
+    width: 100%;
+}
+
+.signup-container h2 {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+}
+
+.signup-inner {
+    border: 5px solid darkviolet;
+    border-radius: 14px;
+    background-color: pink;
+    padding: 0.5rem 0.8rem;
+}
+
+.signup-input {
+    width: 100%;
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    border: 2px solid darkviolet;
+    background-color: white;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    box-sizing: border-box;
+}
+
+.signup-row {
+    display: flex;
+    gap: 10px;
+}
+
+.signup-row .signup-input {
+    flex: 1;
+}
+
+.signup-radio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.signup-split-row {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.signup-split-row > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-split-row .signup-inner {
+    flex: 1;
+}
+
+.signup-interests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.signup-tag {
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    border: 2px solid darkviolet;
+    background-color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.signup-tag-selected {
+    background-color: darkviolet;
+    color: white;
+    font-weight: bold;
+}
+
+.signup-tag:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.signup-hint {
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 0.3rem;
+}
+
+.signup-btn {
+    border-radius: 14px;
+    font-size: 1rem;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    width: 100%;
+}
