@@ -12,6 +12,7 @@ function Home({ name, userEventEmail }) {
     const [eventLocation, setEventLocation] = useState();
     const [eventDate, setEventDate] = useState();
     const [eventDescription, setEventDescription] = useState();
+    const [registrationID, setRegistrationID] = useState();
 
     const [refresh, setRefresh] = useState(0);
 
@@ -35,6 +36,7 @@ function Home({ name, userEventEmail }) {
                 });
                 setEventDate(formattedDate);
                 setEventDescription(data.description);
+                setRegistrationID(data.registration_id);
             } else {
                 setEventName(data);
             }
@@ -43,8 +45,14 @@ function Home({ name, userEventEmail }) {
     }, [userEventEmail, refresh]);
 
     async function joinEvent() {
-        alert("beep")
-        setRefresh(prev => prev + 1);
+        const updateAttendance = await fetch(
+            `http://localhost:3000/api/home/newEvent/${registrationID}`,
+            {
+                method: "POST",
+            },
+        );
+        console.log(updateAttendance);
+        setRefresh((prev) => prev + 1);
     }
 
     return (
@@ -56,15 +64,22 @@ function Home({ name, userEventEmail }) {
 
             <div className="container">
                 <h2>New For You</h2>
-                <div className="inner-container">
+
+                {eventName !== "No New Events!" ? (
+                    <div className="inner-container">
+                        <h1>{eventName}</h1>
+                        <p className="date">
+                            Date: {eventDate} -- Location: {eventLocation}
+                        </p>
+                        <p className="details">Details</p>
+                        <p>{eventDescription}</p>
+                        <button className="join-button" onClick={joinEvent}>
+                            Join
+                        </button>
+                    </div>
+                ) : (
                     <h1>{eventName}</h1>
-                    <p className="date">
-                        Date: {eventDate} -- Location: {eventLocation}
-                    </p>
-                    <p className="details">Details</p>
-                    <p>{eventDescription}</p>
-                    <button className="join-button" onClick={joinEvent}>Join</button>
-                </div>
+                )}
             </div>
 
             <div className="container">

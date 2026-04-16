@@ -11,6 +11,18 @@ async function newUserEvent(req, res) {
     }
 }
 
+async function joinEvent(req, res) {
+    const eventRegistrationID = req.params.id;
+    //console.log(eventID);
+    try {
+        const result = await HomePageEvents.joinEvent(eventRegistrationID);
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(401).json({ error: err.message });
+    }
+}
+
 module.exports = {
-    newUserEvent
+    newUserEvent,
+    joinEvent
 }
