@@ -10,8 +10,14 @@ function Aisuggestions() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showErrorHint, setShowErrorHint] = useState(false);
 
-  const mockInterestedCount = 42;
+  // generator states
+  const [generatorInput, setGeneratorInput] = useState("");
+  const [showGeneratorModal, setShowGeneratorModal] = useState(false);
+  const [generatedIdea, setGeneratedIdea] = useState(null);
+  const [showGeneratorCancelConfirm, setShowGeneratorCancelConfirm] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
+  const mockInterestedCount = 42;
   const today = new Date().toISOString().split("T")[0];
 
   const resetModalState = () => {
@@ -20,6 +26,14 @@ function Aisuggestions() {
     setMessage("");
     setShowCancelConfirm(false);
     setShowErrorHint(false);
+  };
+
+  // UPDATED: now also clears input
+  const resetGeneratorState = () => {
+    setGeneratedIdea(null);
+    setShowGeneratorCancelConfirm(false);
+    setIsGenerating(false);
+    setGeneratorInput(""); // <-- clears input
   };
 
   const handleCreateClick = (title, description) => {
@@ -45,11 +59,7 @@ function Aisuggestions() {
   const handleSubmit = () => {
     if (!date || !message.trim()) {
       setShowErrorHint(true);
-
-      setTimeout(() => {
-        setShowErrorHint(false);
-      }, 1200);
-
+      setTimeout(() => setShowErrorHint(false), 1200);
       return;
     }
 
@@ -57,13 +67,62 @@ function Aisuggestions() {
     resetModalState();
 
     setShowConfirmation(true);
-
-    setTimeout(() => {
-      setShowConfirmation(false);
-    }, 4000);
+    setTimeout(() => setShowConfirmation(false), 4000);
   };
 
   const canSubmit = date && message.trim();
+
+  const handleGenerateClick = () => {
+    if (!generatorInput.trim()) return;
+
+    setShowGeneratorModal(true);
+    setIsGenerating(true);
+    setGeneratedIdea(null);
+
+    setTimeout(() => {
+      setGeneratedIdea({
+        title: "AI Suggested Event",
+        description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
+      });
+      setIsGenerating(false);
+    }, 1500);
+  };
+
+  const handleGenerateIdea = () => {
+    if (!generatorInput.trim()) return;
+
+    setIsGenerating(true);
+    setGeneratedIdea(null);
+
+    setTimeout(() => {
+      setGeneratedIdea({
+        title: "AI Suggested Event",
+        description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
+      });
+      setIsGenerating(false);
+    }, 1500);
+  };
+
+  const useGeneratedIdea = () => {
+    setShowGeneratorModal(false);
+    resetGeneratorState();
+
+    setSelectedEvent(generatedIdea);
+    setShowModal(true);
+  };
+
+  const closeGeneratorConfirm = () => {
+    setShowGeneratorCancelConfirm(true);
+  };
+
+  const confirmGeneratorCancel = () => {
+    setShowGeneratorModal(false);
+    resetGeneratorState(); // <-- clears input here
+  };
+
+  const stayGenerator = () => {
+    setShowGeneratorCancelConfirm(false);
+  };
 
   return (
     <div className="aisuggestions__container">
@@ -108,7 +167,7 @@ function Aisuggestions() {
               <div className="aisuggestions__cardBody">
                 <strong className="aisuggestions__cardTitle">Tech Talks</strong>
                 <p className="aisuggestions__cardText">
-                  Those options are already baked in...
+                  Those options are already baked in with this model...
                 </p>
               </div>
               <button
@@ -130,7 +189,7 @@ function Aisuggestions() {
               <div className="aisuggestions__cardBody">
                 <strong className="aisuggestions__cardTitle">City Cycles</strong>
                 <p className="aisuggestions__cardText">
-                  Those options are already baked in...
+                  Those options are already baked in with this model...
                 </p>
               </div>
               <button
@@ -192,15 +251,77 @@ function Aisuggestions() {
           <textarea
             className="aisuggestions__textarea"
             placeholder="Enter your idea, budget and estimated head count"
+            value={generatorInput}
+            onChange={(e) => setGeneratorInput(e.target.value)}
           />
 
-          <button className="aisuggestions__generateButton">
+          <button
+            className="aisuggestions__generateButton"
+            onClick={handleGenerateClick}
+          >
             Generate
           </button>
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* GENERATOR MODAL */}
+      {showGeneratorModal && (
+        <div className="aisuggestions__modalOverlay">
+          <div className="aisuggestions__modal">
+
+            <button
+              className="aisuggestions__closeBtn"
+              onClick={closeGeneratorConfirm}
+            >
+              ✕
+            </button>
+
+            {!showGeneratorCancelConfirm ? (
+              <>
+                <h2>Generate Event Idea</h2>
+
+                <textarea
+                  className="aisuggestions__textareaModal"
+                  value={generatorInput}
+                  onChange={(e) => setGeneratorInput(e.target.value)}
+                />
+
+                <button
+                  className="aisuggestions__generateButton"
+                  onClick={handleGenerateIdea}
+                >
+                  {isGenerating ? "Generating..." : "Generate Idea"}
+                </button>
+
+                {generatedIdea && (
+                  <div className="aisuggestions__generatedBox">
+                    <strong>{generatedIdea.title}</strong>
+                    <p>{generatedIdea.description}</p>
+
+                    <button
+                      className="aisuggestions__generateButton"
+                      onClick={useGeneratedIdea}
+                    >
+                      Use This Idea
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="aisuggestions__cancelConfirm">
+                <p>Are you sure you want to discard this idea?</p>
+
+                <div className="aisuggestions__cancelButtons">
+                  <button onClick={confirmGeneratorCancel}>Yes</button>
+                  <button onClick={stayGenerator}>No</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* EXISTING MODAL */}
       {showModal && (
         <div className="aisuggestions__modalOverlay">
           <div className="aisuggestions__modal">
@@ -221,7 +342,6 @@ function Aisuggestions() {
                   <strong>Interested Members:</strong> {mockInterestedCount}
                 </p>
 
-                {/* date field */}
                 <div className={`aisuggestions__formGroup ${showErrorHint && !date ? "aisuggestions__error" : ""}`}>
                   <label className="aisuggestions__label">
                     Select Event Date
@@ -240,7 +360,6 @@ function Aisuggestions() {
                   />
                 </div>
 
-                {/* message field */}
                 <div className={`aisuggestions__formGroup ${showErrorHint && !message.trim() ? "aisuggestions__error" : ""}`}>
                   <label className="aisuggestions__label">
                     Invitation Message
