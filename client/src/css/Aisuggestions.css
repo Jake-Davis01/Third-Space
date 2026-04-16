@@ -11,10 +11,7 @@
 --white: #ffffff;
 }
 
-/* page */
-body {
-  background-color: var(--page-bg);
-}
+
 
 /* main container */
 .aisuggestions__container {
