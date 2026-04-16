@@ -13,7 +13,10 @@ CREATE TABLE users (
   last_name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  job_role TEXT CHECK (job_role IN ('employee', 'admin')) NOT NULL,
+  job_role TEXT CHECK (job_role IN ('employee', 'admin')) ,
+  meetup_preference TEXT NOT NULL,
+  user_interests TEXT,
+  office_location TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -84,11 +87,11 @@ INSERT INTO interests (name) VALUES
 ('Hiking'),
 ('Board Games');
 
-INSERT INTO users (first_name, last_name, email, password_hash, job_role) VALUES
-('Alice', 'Smith', 'alice@test.com', 'hash', 'employee'),
-('Bob', 'Jones', 'bob@test.com', 'hash', 'employee'),
-('Charlie', 'Brown', 'charlie@test.com', 'hash', 'employee'),
-('Dana', 'White', 'dana@test.com', 'hash', 'admin');
+INSERT INTO users (first_name, last_name, email, password_hash, job_role, meetup_preference) VALUES
+('Alice', 'Smith', 'alice@test.com', 'hash', 'employee', 'online'),
+('Bob', 'Jones', 'bob@test.com', 'hash', 'employee', 'online'),
+('Charlie', 'Brown', 'charlie@test.com', 'hash', 'employee','online'),
+('Dana', 'White', 'dana@test.com', 'hash', 'admin','online');
 
 INSERT INTO user_interests (user_id, interest_id) VALUES
 (1, 1), -- Alice likes Running
