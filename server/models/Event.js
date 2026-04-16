@@ -1,4 +1,4 @@
-const db = require("../database/connect");
+const db = require('../database/connect');
 
 class Event {
   constructor(data) {
@@ -21,7 +21,7 @@ class Event {
       this.description,
       this.event_date,
       this.location,
-      this.category_name,
+      this.category_name
     ];
 
     const result = await db.query(query, values);
