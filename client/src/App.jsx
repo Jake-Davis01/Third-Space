@@ -29,17 +29,18 @@ import Events from "./components/Events";
 function App() {
     //for the event organiser. If the person logging is is an EO, this will be updated to true
     const [isEO, setIsEO] = useState(false);
+    const [name, setName] = useState()
 
     return (
         <Router>
             <Routes>
                 {/* Landing page and signup — no NavBar */}
-                <Route path="/" element={<LandingPage setIsEO={setIsEO} />} />
+                <Route path="/" element={<LandingPage setIsEO={setIsEO} setName={setName}/>} />
                 <Route path="/signup" element={<SignUp />} />
 
                 {/* All other pages — wrapped with NavBar */}
                 <Route element={<WithNav isEO={isEO} />}>
-                    <Route path="/home" element={<Home />} />
+                    <Route path="/home" element={<Home name={name} />} />
                     <Route path="/events" element={<Events />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />

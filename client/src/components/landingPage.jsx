@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "../css/landingPage.css";
 import { useNavigate } from "react-router-dom";
 
-function LandingPage({ setIsEO }) {
+function LandingPage({ setIsEO, setName }) {
     const navigate = useNavigate();
 
     const [userEmail, setUserEmail] = useState("");
@@ -48,6 +48,7 @@ function LandingPage({ setIsEO }) {
         //if the user exits, let them login
         if (data.error !== "Unable to locate user.") {
             setCanLogin(true);
+            setName(data.firstName)
         }
     }
     //navigate to the signup
