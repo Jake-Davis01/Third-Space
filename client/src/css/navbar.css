@@ -1,5 +1,6 @@
 .navbar {
-    border: 3px solid red;
+    border: 3px solid var(--border);
+    background-color: var(--bg-main);
     display: flex;
     align-items: center;
     margin: 0 auto;
@@ -11,10 +12,15 @@
 }
 
 .navbar a {
-    border: 3px solid green;
+    border: 3px solid var(--border);
     margin-left: 2rem;
     padding: 1rem;
-    background-color: gray;
+    background-color: var(--primary);
     border-radius: 14px;
     text-decoration: none;
+    color: var(--text-light);
+}
+
+.navbar a:hover {
+    background-color: var(--secondary);
 }
