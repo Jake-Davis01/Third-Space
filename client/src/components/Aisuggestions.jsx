@@ -9,6 +9,8 @@ function Aisuggestions() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showErrorHint, setShowErrorHint] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // generator states
   const [generatorInput, setGeneratorInput] = useState("");
@@ -26,14 +28,15 @@ function Aisuggestions() {
     setMessage("");
     setShowCancelConfirm(false);
     setShowErrorHint(false);
+    setSubmitError("");
+    setIsSubmitting(false);
   };
 
-  // UPDATED: now also clears input
   const resetGeneratorState = () => {
     setGeneratedIdea(null);
     setShowGeneratorCancelConfirm(false);
     setIsGenerating(false);
-    setGeneratorInput(""); // <-- clears input
+    setGeneratorInput("");
   };
 
   const handleCreateClick = (title, description) => {
@@ -41,6 +44,7 @@ function Aisuggestions() {
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
+    setSubmitError("");
   };
 
   const handleCloseClick = () => {
@@ -56,21 +60,45 @@ function Aisuggestions() {
     setShowCancelConfirm(false);
   };
 
-  const handleSubmit = () => {
-    if (!date || !message.trim()) {
-      setShowErrorHint(true);
-      setTimeout(() => setShowErrorHint(false), 1200);
-      return;
-    }
+const handleSubmit = async () => {
+  console.log("SUBMIT CLICKED");
+  if (!date || !message.trim()) {
+    setShowErrorHint(true);
+    setTimeout(() => setShowErrorHint(false), 1200);
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/api/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: selectedEvent.title,
+        description: selectedEvent.description,
+        event_date: date,
+        location: "TBD",
+        category_name: null,
+      }),
+    });
+
+    const data = await response.json();
+
+    console.log("Event created:", data);
 
     setShowModal(false);
     resetModalState();
 
     setShowConfirmation(true);
     setTimeout(() => setShowConfirmation(false), 4000);
-  };
 
-  const canSubmit = date && message.trim();
+  } catch (err) {
+    console.error("Error creating event:", err);
+  }
+};
+
+  const canSubmit = date && message.trim() && !isSubmitting;
 
   const handleGenerateClick = () => {
     if (!generatorInput.trim()) return;
@@ -104,11 +132,14 @@ function Aisuggestions() {
   };
 
   const useGeneratedIdea = () => {
+    const ideaToUse = generatedIdea;
+
     setShowGeneratorModal(false);
     resetGeneratorState();
 
-    setSelectedEvent(generatedIdea);
+    setSelectedEvent(ideaToUse);
     setShowModal(true);
+    setSubmitError("");
   };
 
   const closeGeneratorConfirm = () => {
@@ -117,7 +148,7 @@ function Aisuggestions() {
 
   const confirmGeneratorCancel = () => {
     setShowGeneratorModal(false);
-    resetGeneratorState(); // <-- clears input here
+    resetGeneratorState();
   };
 
   const stayGenerator = () => {
@@ -135,7 +166,6 @@ function Aisuggestions() {
         </p>
       </div>
 
-      {/* Suggestions */}
       <div className="aisuggestions__content">
         <div className="aisuggestions__sectionBox">
           <h3 className="aisuggestions__sectionTitle">Top Suggestions</h3>
@@ -208,7 +238,6 @@ function Aisuggestions() {
         </div>
       </div>
 
-      {/* Niche */}
       <div className="aisuggestions__section">
         <div className="aisuggestions__sectionBox">
           <h3 className="aisuggestions__sectionTitle">
@@ -241,7 +270,6 @@ function Aisuggestions() {
         </div>
       </div>
 
-      {/* Generator */}
       <div className="aisuggestions__section">
         <div className="aisuggestions__sectionBox">
           <h3 className="aisuggestions__sectionTitle">
@@ -264,11 +292,9 @@ function Aisuggestions() {
         </div>
       </div>
 
-      {/* GENERATOR MODAL */}
       {showGeneratorModal && (
         <div className="aisuggestions__modalOverlay">
           <div className="aisuggestions__modal">
-
             <button
               className="aisuggestions__closeBtn"
               onClick={closeGeneratorConfirm}
@@ -289,6 +315,7 @@ function Aisuggestions() {
                 <button
                   className="aisuggestions__generateButton"
                   onClick={handleGenerateIdea}
+                  disabled={isGenerating}
                 >
                   {isGenerating ? "Generating..." : "Generate Idea"}
                 </button>
@@ -321,11 +348,9 @@ function Aisuggestions() {
         </div>
       )}
 
-      {/* EXISTING MODAL */}
       {showModal && (
         <div className="aisuggestions__modalOverlay">
           <div className="aisuggestions__modal">
-
             <button
               className="aisuggestions__closeBtn"
               onClick={handleCloseClick}
@@ -342,7 +367,11 @@ function Aisuggestions() {
                   <strong>Interested Members:</strong> {mockInterestedCount}
                 </p>
 
-                <div className={`aisuggestions__formGroup ${showErrorHint && !date ? "aisuggestions__error" : ""}`}>
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !date ? "aisuggestions__error" : ""
+                  }`}
+                >
                   <label className="aisuggestions__label">
                     Select Event Date
                   </label>
@@ -360,7 +389,11 @@ function Aisuggestions() {
                   />
                 </div>
 
-                <div className={`aisuggestions__formGroup ${showErrorHint && !message.trim() ? "aisuggestions__error" : ""}`}>
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !message.trim() ? "aisuggestions__error" : ""
+                  }`}
+                >
                   <label className="aisuggestions__label">
                     Invitation Message
                   </label>
@@ -377,12 +410,25 @@ function Aisuggestions() {
                   />
                 </div>
 
+                {submitError && (
+                  <p
+                    style={{
+                      color: "crimson",
+                      marginTop: "8px",
+                      marginBottom: "8px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {submitError}
+                  </p>
+                )}
+
                 <button
                   className="aisuggestions__generateButton"
                   onClick={handleSubmit}
                   disabled={!canSubmit}
                 >
-                  Schedule Event
+                  {isSubmitting ? "Saving..." : "Schedule Event"}
                 </button>
               </>
             ) : (
@@ -399,7 +445,6 @@ function Aisuggestions() {
         </div>
       )}
 
-      {/* CONFIRMATION */}
       {showConfirmation && (
         <div className="aisuggestions__confirmation">
           Your event is now scheduled. Head to your events page to track RSVPs.
