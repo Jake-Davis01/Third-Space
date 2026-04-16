@@ -13,7 +13,10 @@ CREATE TABLE users (
   last_name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  job_role TEXT CHECK (job_role IN ('employee', 'admin')) NOT NULL,
+  job_role TEXT CHECK (job_role IN ('employee', 'admin')) ,
+  meetup_preference TEXT NOT NULL,
+  user_interests TEXT,
+  office_location TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

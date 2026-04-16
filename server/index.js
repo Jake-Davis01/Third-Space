@@ -18,11 +18,12 @@ app.use(express.json());
 // ROUTES
 // ----------------------
 const dashboardRoutes = require("./routes/dashboard");
+const authRouter = require("./routes/auth")
 
 // IMPORTANT: mount route
 app.use("/api/dashboard", dashboardRoutes);
 
-
+app.use("/api/auth", authRouter)
 
 // ----------------------
 // TEST ROUTE 

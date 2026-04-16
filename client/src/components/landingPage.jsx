@@ -14,21 +14,45 @@ function LandingPage({ setIsEO }) {
     useEffect(() => {
         if (canLogin) {
             //for testing, will need to be removed in real version
-            console.log(userEmail, userPassword);
+            //console.log(userEmail, userPassword);
             navigate("/home");
         }
     }, [canLogin]);
 
-    //will need to be updated to check for user account in database
-    function checkDetails() {
-        //will need to be conditional to check the user can log in
-        setCanLogin(true);
-        //will need conditional to check if the user is an event organiser
-        setIsEO(true);
+
+    async function checkDetails() {
+        //call the database to see if user acount exists
+        const userAccountDetails = await fetch(
+            "http://localhost:3000/api/auth/login",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: userEmail,
+                    password: userPassword,
+                }),
+            },
+        );
+        //turn the response into a js object
+        const data = await userAccountDetails.json();
+        console.log(data);
+        //check if an event organiser is trying to login
+        if (data.jobRole === "admin") {
+            setIsEO(true);
+        }
+        if (data.jobRole === "employee") {
+            setIsEO(false);
+        }
+        //if the user exits, let them login
+        if (data.error !== "Unable to locate user.") {
+            setCanLogin(true);
+        }
     }
     //navigate to the signup
     function signUp() {
-        navigate("/signup")
+        navigate("/signup");
     }
 
     return (
@@ -40,19 +64,24 @@ function LandingPage({ setIsEO }) {
                         type="text"
                         placeholder="email"
                         className="landingPage-input"
-                        onChange={(e) => setUserPassword(e.target.value)}
+                        onChange={(e) => setUserEmail(e.target.value)}
                     />
                     <br />
                     <input
                         type="password"
                         placeholder="password"
                         className="landingPage-input"
-                        onChange={(e) => setUserEmail(e.target.value)}
+                        onChange={(e) => setUserPassword(e.target.value)}
                     />
                     <br />
-                    <button className="loginBtn" onClick={checkDetails}>Login</button>
+                    <button className="loginBtn" onClick={checkDetails}>
+                        Login
+                    </button>
                     <p className="signupText">
-                        Need an account? <span className="signUpBtn" onClick={signUp}>Sign Up</span>
+                        Need an account?{" "}
+                        <span className="signUpBtn" onClick={signUp}>
+                            Sign Up
+                        </span>
                     </p>
                 </div>
             </div>
