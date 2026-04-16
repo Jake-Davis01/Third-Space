@@ -2,7 +2,7 @@ import '../css/home.css'
 
 import { useState } from "react";
 
-function Home() {
+function Home({ name }) {
     const totalStars = 5;
 
     const [rating, setRating] = useState(0);
@@ -11,7 +11,7 @@ function Home() {
     return (
         <section>
             <div className="welcome-user container">
-                <h1>Welcome Back USER</h1>
+                <h1>Welcome Back {name}</h1>
                 <p>3 Events this month</p>
             </div>
 

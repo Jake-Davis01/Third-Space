@@ -4,21 +4,22 @@ import { useNavigate } from "react-router-dom";
 
 function SignUp() {
     const navigate = useNavigate();
-    const [selected, setSelected] = useState([]);
-    const [meetup, setMeetup] = useState("either");
+    const [selectedInterests, setSelectedInterests] = useState([]);
+    const [meetupPreference, setMeetupPreference] = useState("either");
     const [formData, setFormData] = useState({
         first_name: "",
         last_name: "",
         email: "",
         password: "",
+        office_location: "",
     });
     const [error, setError] = useState("");
 
-    const toggle = (interest) => {
-        if (selected.includes(interest)) {
-            setSelected(selected.filter((i) => i !== interest));
-        } else if (selected.length < 5) {
-            setSelected([...selected, interest]);
+    const toggleInterest = (interest) => {
+        if (selectedInterests.includes(interest)) {
+            setSelectedInterests(selectedInterests.filter((i) => i !== interest));
+        } else if (selectedInterests.length < 5) {
+            setSelectedInterests([...selectedInterests, interest]);
         }
     };
 
@@ -29,19 +30,19 @@ function SignUp() {
     const handleSubmit = async () => {
         setError("");
 
-        if (selected.length < 3) {
+        if (selectedInterests.length < 3) {
             setError("Please select at least 3 interests.");
             return;
         }
 
         try {
-                const response = await fetch("http://localhost:3000/api/auth/register", {
+            const response = await fetch("http://localhost:3000/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
-                    user_interests: selected,
-                    meetup_preference: meetup,
+                    user_interests: selectedInterests,
+                    meetup_preference: meetupPreference,
                 }),
             });
 
@@ -95,13 +96,17 @@ function SignUp() {
                             onChange={handleChange}
                         />
                     </div>
-                    <select className="signup-input">
+                    <select
+                        name="office_location"
+                        className="signup-input"
+                        onChange={handleChange}
+                    >
                         <option value="">Select office location</option>
-                        <option>London — Location</option>
-                        <option>Manchester — Location</option>
-                        <option>Birmingham — Location</option>
-                        <option>Edinburgh — Location</option>
-                        <option>Fully remote</option>
+                        <option value="london">London</option>
+                        <option value="manchester">Manchester</option>
+                        <option value="birmingham">Birmingham</option>
+                        <option value="edinburgh">Edinburgh </option>
+                        <option value="remote">Fully remote</option>
                     </select>
                 </div>
 
@@ -111,13 +116,13 @@ function SignUp() {
                             <h2>Meetup Preference</h2>
                             <div className="signup-inner">
                                 <label className="signup-radio">
-                                    <input type="radio" name="meetup" value="online" onChange={(e) => setMeetup(e.target.value)} /> Online only
+                                    <input type="radio" name="meetup" value="online" onChange={(e) => setMeetupPreference(e.target.value)} /> Online only
                                 </label>
                                 <label className="signup-radio">
-                                    <input type="radio" name="meetup" value="in_person" onChange={(e) => setMeetup(e.target.value)} /> In person only
+                                    <input type="radio" name="meetup" value="in_person" onChange={(e) => setMeetupPreference(e.target.value)} /> In person only
                                 </label>
                                 <label className="signup-radio">
-                                    <input type="radio" name="meetup" value="either" defaultChecked onChange={(e) => setMeetup(e.target.value)} /> Either — I'm flexible
+                                    <input type="radio" name="meetup" value="either" defaultChecked onChange={(e) => setMeetupPreference(e.target.value)} /> Either — I'm flexible
                                 </label>
                             </div>
                         </div>
@@ -125,7 +130,7 @@ function SignUp() {
                         <div>
                             <h2>Your Interests</h2>
                             <p className="signup-hint">
-                                Pick 3 to 5 — {selected.length} of 5 selected
+                                Pick 3 to 5 — {selectedInterests.length} of 5 selected
                             </p>
                             <div className="signup-inner">
                                 <div className="signup-interests">
@@ -137,9 +142,9 @@ function SignUp() {
                                     ].map((interest) => (
                                         <button
                                             key={interest}
-                                            className={`signup-tag ${selected.includes(interest) ? "signup-tag-selected" : ""}`}
-                                            onClick={() => toggle(interest)}
-                                            disabled={!selected.includes(interest) && selected.length >= 5}
+                                            className={`signup-tag ${selectedInterests.includes(interest) ? "signup-tag-selected" : ""}`}
+                                            onClick={() => toggleInterest(interest)}
+                                            disabled={!selectedInterests.includes(interest) && selectedInterests.length >= 5}
                                         >
                                             {interest}
                                         </button>
