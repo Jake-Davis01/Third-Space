@@ -22,16 +22,16 @@ ChartJS.register(
   Legend
 );
 
-function LineChart() {
-  const data = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+function LineChart({ data }) {
+  const chartData = {
+    labels: data?.map(d => d.month_label),
     datasets: [
       {
-        label: "Users Regiestered",
-        data: [60, 65, 68, 70, 95],
+        label: "Users Registered",
+        data: data?.map(d => Number(d.cumulative_users)),
         borderColor: "blue",
         backgroundColor: "rgba(255, 239, 15, 0.2)",
-        tension: 0.3   // smooth curve
+        tension: 0.3
       }
     ]
   };
@@ -43,7 +43,7 @@ function LineChart() {
 
   return (
     <div style={{ width: "780px", height: "400px" }}>
-      <Line data={data} options={options} />
+      <Line data={chartData} />
     </div>
   );
 }

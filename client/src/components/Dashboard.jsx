@@ -75,7 +75,7 @@ function Dashboard() {
             
 
             <h2>Further Breakdown</h2>
-            <LineChart />
+            <LineChart data={dashboard?.userGrowth} />
             <div className="box2-container">
             {dashboard && <BarChart data={ratingData} title="Top Activities by Rating" />}
             {dashboard && <BarChart data={attendanceData} title="Top Activities by Attendance" />}

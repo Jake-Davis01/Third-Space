@@ -51,12 +51,27 @@ router.get("/", async (req, res) => {
     FROM event_registrations;
     `);
 
+    const userGrowth = await db.query(`
+    SELECT 
+      TO_CHAR(month, 'Mon YYYY') AS month_label,
+      SUM(users_count) OVER (ORDER BY month) AS cumulative_users
+    FROM (
+      SELECT 
+        DATE_TRUNC('month', created_at) AS month,
+        COUNT(*) AS users_count
+      FROM users
+      GROUP BY month
+    ) sub
+    ORDER BY month;
+    `);
+
     res.json({
       interests: interests.rows,
       attendance: attendance.rows,
       ratings: ratings.rows,
       activeUsers: activeUsers.rows[0].count,
-      registrationPercent: registeredPercent.rows[0].percent
+      registrationPercent: registeredPercent.rows[0].percent,
+      userGrowth: userGrowth.rows
     });
 
   } catch (err) {
