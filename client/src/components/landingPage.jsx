@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "../css/landingPage.css";
 import { useNavigate } from "react-router-dom";
 
-function LandingPage({ setIsEO, setName }) {
+function LandingPage({ setIsEO, setName, setUserEventEmail }) {
     const navigate = useNavigate();
 
     const [userEmail, setUserEmail] = useState("");
@@ -13,8 +13,6 @@ function LandingPage({ setIsEO, setName }) {
     // runs when "canLogin" is updated. Should happen when its confirmed user has an account
     useEffect(() => {
         if (canLogin) {
-            //for testing, will need to be removed in real version
-            //console.log(userEmail, userPassword);
             navigate("/home");
         }
     }, [canLogin]);
@@ -49,6 +47,7 @@ function LandingPage({ setIsEO, setName }) {
         if (data.error !== "Unable to locate user.") {
             setCanLogin(true);
             setName(data.firstName)
+            setUserEventEmail(data.email)
         }
     }
     //navigate to the signup
