@@ -1,14 +1,9 @@
 .dashboard-page {
+  background-color: #4A7FB5;
   margin: 0;
-  min-height: 100vh;
-
-  background: linear-gradient(
-    135deg,
-    #2db4d6, 
-    #4b63c6, 
-    #7b2cbf   
-  );
+  min-height: 100vh;
 }
+
 
 .dashboard {
   display: flex;
@@ -31,7 +26,7 @@
   padding-right: 20px;
   border-radius: 25px;
   background-color: var(--bg-dark);
-  color: var(--secondary);
+  color: #ffffff;
 }
 
 .box-container {
@@ -117,6 +112,5 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  border: 1px solid rgba(255, 255, 255, 0.103);
-  box-shadow: 0 8px 24px rgba(150, 46, 211, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0);
 }

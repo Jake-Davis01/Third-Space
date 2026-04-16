@@ -1,41 +1,48 @@
 import BarChart from "./BarChart";
 import LineChart from "./LineChart";
 import '../css/Dashboard.css'
+import { useEffect, useState } from "react";
 
 function Dashboard() {
+    const [dashboard, setDashboard] = useState(null);
+
+    useEffect(() => {
+    fetch("http://localhost:3000/api/dashboard")
+        .then(res => res.json())
+        .then(data => setDashboard(data))
+        .catch(err => console.error("Dashboard fetch failed:", err));
+    }, []);
+
     const interestsData = {
-        labels: ["Board Games", "Running", "Film", "Reading", "Hiking"],
-        datasets: [
-            {
-                label: "Number of Emplyoees interested",
-                data: [62, 51, 43, 33, 21],
-                backgroundColor: "rgba(235, 54, 54, 0.6)"
-            }
-    ]
+    labels: dashboard?.interests?.map(i => i.name) || [],
+    datasets: [{
+        label: "Number of Employees interested",
+        data: dashboard?.interests?.map(i => Number(i.count)) || [],
+        backgroundColor: "rgba(235, 54, 54, 0.6)"
+    }]
     };
 
-    const AttendanceData = {
-        labels: ["Running", "Reading", "Birmingham"],
-        datasets: [
-            {
-                label: "Number of Emplyoees",
-                data: [20, 15, 3],
-                backgroundColor: "rgba(54, 162, 235, 0.6)"
-            }
-        ]
+    const attendanceData = dashboard && {
+    labels: dashboard.attendance.map(i => i.name),
+    datasets: [{
+        label: "Attendance",
+        data: dashboard.attendance.map(i => Number(i.count)),
+        backgroundColor: "rgba(54, 162, 235, 0.6)"
+    }]
     };
 
-    const RatingData = {
-        labels: ["Film", "Running", "Reading"],
-        datasets: [
-            {
-                label: "Number of Emplyoees",
-                data: [17, 15, 6],
-                backgroundColor: "rgba(54, 162, 235, 0.6)"
-            }
-        ]        
-
+    const ratingData = dashboard && {
+    labels: dashboard.ratings.map(i => i.name),
+    datasets: [{
+        label: "Average Rating",
+        data: dashboard.ratings.map(i => Number(i.avg_rating)),
+        backgroundColor: "rgba(54, 162, 235, 0.6)"
+    }]
     };
+
+
+    console.log("dashboard:", dashboard);
+    console.log("interestsData:", interestsData);
 
     return (
         <div className="dashboard-page">
@@ -45,17 +52,17 @@ function Dashboard() {
 
             <div className="box-container">
                 <div className="box">
-                    <h2>Active Users</h2>
-                    <p>419</p>
+                    <h3>Active Users</h3>
+                    <h1>{dashboard?.activeUsers}</h1>
                 </div>
                 <div className="box">
-                    <h2>Registration</h2>
-                    <p>67%</p>
+                    <h3>Registration %</h3>
+                    <h1>{dashboard?.registrationPercent}%</h1>
                 </div>
             </div>
 
             <div className="chart-container">
-            <BarChart data={interestsData} title="Top Interests"/> </div>
+            {dashboard && <BarChart data={interestsData} title="Top Interests" />} </div>
             
 
             <div className="pastevents-box">
@@ -70,14 +77,13 @@ function Dashboard() {
             <h2>Further Breakdown</h2>
             <LineChart />
             <div className="box2-container">
-            <BarChart data={RatingData} title="Top Activities by Rating" />
-            <BarChart data={AttendanceData} title="Top Activites by Attendance" />
+            {dashboard && <BarChart data={ratingData} title="Top Activities by Rating" />}
+            {dashboard && <BarChart data={attendanceData} title="Top Activities by Attendance" />}
             </div>
             
 
 
-        </div>
-        </div>
+        </div></div>
     );
 }
 
