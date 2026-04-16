@@ -51,21 +51,21 @@ CREATE TABLE events (
 CREATE TABLE event_registrations (
   id SERIAL PRIMARY KEY,
   user_email TEXT REFERENCES users(email) ON DELETE CASCADE,
-  event_title TEXT REFERENCES events(title) ON DELETE CASCADE,
+  event_id INT REFERENCES events(id) ON DELETE CASCADE,
   status TEXT CHECK (status IN ('registered', 'attended', 'cancelled', 'declined', 'unresponsive')) DEFAULT 'unresponsive',
   registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(user_email, event_title)
+  UNIQUE(user_email, event_id)
 );
 
 -- To collect all event feedback
 CREATE TABLE feedback (
   id SERIAL PRIMARY KEY,
   user_email TEXT REFERENCES users(email) ON DELETE CASCADE,
-  event_title TEXT REFERENCES events(title) ON DELETE CASCADE,
+  event_id INT REFERENCES events(id) ON DELETE CASCADE,
   rating INT CHECK (rating BETWEEN 1 AND 5),
   comment TEXT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(user_email, event_title)
+  UNIQUE(user_email, event_id)
 );
 
 -- To store all data for the AI to grab insights
@@ -145,62 +145,62 @@ INSERT INTO events (title, description, category_name, location, event_date, cre
 ('Beginner Yoga Session', 'Relaxing yoga session for all levels.', 'Yoga', 'Fully remote', '2026-04-25', '2026-01-01 09:00:00'),
 ('Travel Talk Meetup', 'Share travel stories and plan future trips.', 'Travel', 'Fully remote', '2026-04-27', '2026-01-01 09:00:00');
 
-INSERT INTO event_registrations (user_email, event_title, status) VALUES
+INSERT INTO event_registrations (user_email, event_id, status) VALUES
 -- Alice
-('alice@test.com', 'Morning Running Club', 'registered'),
-('alice@test.com', 'Film Night Social', 'registered'),
-('alice@test.com', 'Travel Talk Meetup', 'registered'),
+('alice@test.com', 1, 'registered'),
+('alice@test.com', 2, 'registered'),
+('alice@test.com', 5, 'registered'),
 
 -- Bob
-('bob@test.com', 'Board Games & Chill', 'registered'),
-('bob@test.com', 'Film Night Social', 'attended'),
-('bob@test.com', 'Beginner Yoga Session', 'registered'),
+('bob@test.com', 3, 'registered'),
+('bob@test.com', 2, 'attended'),
+('bob@test.com', 4, 'registered'),
 
 -- Charlie
-('charlie@test.com', 'Morning Running Club', 'registered'),
-('charlie@test.com', 'Travel Talk Meetup', 'registered'),
-('charlie@test.com', 'Board Games & Chill', 'declined'),
+('charlie@test.com', 1, 'registered'),
+('charlie@test.com', 5, 'registered'),
+('charlie@test.com', 3, 'declined'),
 
 -- Dana
-('dana@test.com', 'Beginner Yoga Session', 'registered'),
-('dana@test.com', 'Travel Talk Meetup', 'registered'),
-('dana@test.com', 'Film Night Social', 'attended'),
+('dana@test.com', 4, 'registered'),
+('dana@test.com', 5, 'registered'),
+('dana@test.com', 2, 'attended'),
 
 -- Edward
-('edward@test.com', 'Morning Running Club', 'registered'),
-('edward@test.com', 'Board Games & Chill', 'registered'),
-('edward@test.com', 'Beginner Yoga Session', 'unresponsive'),
+('edward@test.com', 1, 'registered'),
+('edward@test.com', 3, 'registered'),
+('edward@test.com', 4, 'unresponsive'),
 
 -- Florence
-('florence@test.com', 'Film Night Social', 'registered'),
-('florence@test.com', 'Travel Talk Meetup', 'registered'),
-('florence@test.com', 'Morning Running Club', 'cancelled');
+('florence@test.com', 2, 'registered'),
+('florence@test.com', 5, 'registered'),
+('florence@test.com', 1, 'cancelled');
 
 
-INSERT INTO feedback (user_email, event_title, rating, comment) VALUES
+INSERT INTO feedback (user_email, event_id, rating, comment) VALUES
 
--- Morning Running Club
-('alice@test.com', 'Morning Running Club', 5, 'Great energy and a really friendly group.'),
-('charlie@test.com', 'Morning Running Club', 4, 'Good pace, would join again.'),
+-- Morning Running Club (id = 1)
+('alice@test.com', 1, 5, 'Great energy and a really friendly group.'),
+('charlie@test.com', 1, 4, 'Good pace, would join again.'),
 
--- Film Night Social
-('alice@test.com', 'Film Night Social', 4, 'Nice selection of films and good discussion afterwards.'),
-('bob@test.com', 'Film Night Social', 5, 'Really well organised, loved the atmosphere.'),
-('dana@test.com', 'Film Night Social', 4, 'Fun evening, will come back.'),
+-- Film Night Social (id = 2)
+('alice@test.com', 2, 4, 'Nice selection of films and good discussion afterwards.'),
+('bob@test.com', 2, 5, 'Really well organised, loved the atmosphere.'),
+('dana@test.com', 2, 4, 'Fun evening, will come back.'),
 
--- Board Games & Chill
-('bob@test.com', 'Board Games & Chill', 5, 'Super fun, lots of games to choose from.'),
-('charlie@test.com', 'Board Games & Chill', 3, 'Good idea but a bit crowded.'),
-('edward@test.com', 'Board Games & Chill', 4, 'Enjoyed meeting new people.'),
+-- Board Games & Chill (id = 3)
+('bob@test.com', 3, 5, 'Super fun, lots of games to choose from.'),
+('charlie@test.com', 3, 3, 'Good idea but a bit crowded.'),
+('edward@test.com', 3, 4, 'Enjoyed meeting new people.'),
 
--- Beginner Yoga Session
-('bob@test.com', 'Beginner Yoga Session', 4, 'Relaxing and easy to follow.'),
-('dana@test.com', 'Beginner Yoga Session', 5, 'Perfect session for unwinding.'),
-('edward@test.com', 'Beginner Yoga Session', 3, 'A bit slow for my pace but still good.'),
+-- Beginner Yoga Session (id = 4)
+('bob@test.com', 4, 4, 'Relaxing and easy to follow.'),
+('dana@test.com', 4, 5, 'Perfect session for unwinding.'),
+('edward@test.com', 4, 3, 'A bit slow for my pace but still good.'),
 
--- Travel Talk Meetup
-('alice@test.com', 'Travel Talk Meetup', 5, 'Loved hearing everyone’s travel stories.'),
-('charlie@test.com', 'Travel Talk Meetup', 4, 'Inspiring and fun group.'),
-('dana@test.com', 'Travel Talk Meetup', 5, 'Great for sharing ideas and meeting people.'),
-('florence@test.com', 'Travel Talk Meetup', 4, 'Really enjoyable and friendly crowd.');
+-- Travel Talk Meetup (id = 5)
+('alice@test.com', 5, 5, 'Loved hearing everyone’s travel stories.'),
+('charlie@test.com', 5, 4, 'Inspiring and fun group.'),
+('dana@test.com', 5, 5, 'Great for sharing ideas and meeting people.'),
+('florence@test.com', 5, 4, 'Really enjoyable and friendly crowd.');
 
