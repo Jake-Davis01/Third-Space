@@ -1,0 +1,44 @@
+Top interests
+
+SELECT i.name, COUNT(*) as count
+FROM user_interests ui
+JOIN interests i ON ui.interest_id = i.id
+GROUP BY i.name
+ORDER BY count DESC;
+
+
+Past Events List
+
+SELECT 
+  e.title,
+  e.event_date,
+  COUNT(er.id) as attended,
+  AVG(f.rating) as avg_rating
+FROM events e
+LEFT JOIN event_registrations er 
+  ON e.id = er.event_id AND er.status = 'attended'
+LEFT JOIN feedback f 
+  ON e.id = f.event_id
+GROUP BY e.id;
+
+
+Attendace by Category
+
+SELECT i.name, COUNT(*) as attendees
+FROM event_registrations er
+JOIN events e ON er.event_id = e.id
+JOIN interests i ON e.category_id = i.id
+WHERE er.status = 'attended'
+GROUP BY i.name;
+
+
+Average Ratings
+
+SELECT i.name, AVG(f.rating) as avg_rating
+FROM feedback f
+JOIN events e ON f.event_id = e.id
+JOIN interests i ON e.category_id = i.id
+GROUP BY i.name;
+
+
+
