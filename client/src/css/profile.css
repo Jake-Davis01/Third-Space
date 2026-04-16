@@ -1,167 +1,139 @@
-.signup-section * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-.signup-section {
-    min-height: 100vh;
-    display: flex;
-}
-
-.signup-left {
-    width: 68%;
-    background-color: #F8F9FA;
-    padding: 4rem 3.5rem;
+.profile-section {
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     gap: 1.5rem;
+    background-color: #F8F9FA;
 }
 
-.signup-left h1 {
-    font-size: 2.2rem;
+.profile-title {
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin: 0rem;
 }
 
-.signup-right {
-    width: 71%;
-    background-color: #224567;
-}
-
-.signup-block {
+.profile-block {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.signup-block h2 {
+.profile-block h2 {
+    color: #224567;
     font-size: 0.9rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #224567;
     margin-bottom: 0.3rem;
 }
 
-.signup-input {
-    width: 100%;
+.profile-input {
+    width: 40%;
     padding: 0.6rem 1rem;
-    border-radius: 14px;
+    border-radius: 8px;
     border: 1.5px solid #D0D8E4;
     background-color: #FFFFFF;
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
     box-sizing: border-box;
-    color: #224567;
 }
 
-.signup-input:focus {
+.profile-input:focus {
     outline: none;
     border-color: #224567;
 }
 
-.signup-row {
-    display: flex;
-    gap: 0.8rem;
-}
-
-.signup-row .signup-input {
-    flex: 1;
-}
-
-.signup-inner {
+.profile-inner {
     border: 1.5px solid #D0D8E4;
-    border-radius: 14px;
+    border-radius: 10px;
     background-color: #FFFFFF;
     padding: 0.6rem 0.8rem;
 }
 
-.signup-radio {
+.profile-radio {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     padding: 0.3rem 0;
     font-size: 0.9rem;
     cursor: pointer;
-    color: #224567;
 }
 
-.signup-radio input {
+.profile-radio input {
     accent-color: #224567;
 }
 
-.signup-split-row {
+.profile-split-row {
     display: flex;
     gap: 1.5rem;
     align-items: flex-start;
 }
 
-.signup-split-row > div {
+.profile-split-row > div {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
 }
 
-.signup-interests {
+.profile-interests {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
 }
 
-.signup-tag {
+.profile-tag {
     padding: 0.3rem 0.8rem;
-    border-radius: 14px;
+    border-radius: 20px;
     border: 1.5px solid #A8BDD6;
     background-color: #FFFFFF;
     cursor: pointer;
     font-size: 0.85rem;
     color: #224567;
-    transition: all 0.15s;
 }
 
-.signup-tag:hover {
+.profile-tag:hover {
     border-color: #224567;
     background-color: #EEF3FA;
 }
 
-.signup-tag-selected {
+.profile-tag-selected {
     background-color: #224567;
     color: #FFFFFF;
     border-color: #224567;
     font-weight: 600;
 }
-.signup-tag-selected:hover {
+
+.profile-tag-selected:hover {
     background-color: #3A6A9A;
     color: #FFFFFF;
     border-color: #3A6A9A;
 }
-.signup-tag:disabled {
+
+.profile-tag:disabled {
     opacity: 0.35;
     cursor: not-allowed;
 }
 
-.signup-hint {
+.profile-hint {
     font-size: 0.8rem;
     color: #7F8C9A;
-    margin-bottom: 0.2rem;
+    margin: 0rem;
 }
 
-.signup-btn {
-    border-radius: 8px;
+.profile-btn {
+    border-radius: 14px;
     font-size: 1rem;
     padding: 0.7rem 1rem;
     cursor: pointer;
     width: 100%;
     background-color: #224567;
     color: #FFFFFF;
-    border: none;
     font-weight: 600;
-    transition: background-color 0.15s;
+    max-width: 20rem;
+    align-self: center;
+    border: none;
 }
 
-.signup-btn:hover {
+.profile-btn:hover {
     background-color: #3A6A9A;
 }

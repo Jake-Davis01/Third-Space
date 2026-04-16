@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "../css/landingPage.css";
 import { useNavigate } from "react-router-dom";
 
-function LandingPage() {
+function LandingPage({ setIsEO }) {
     const navigate = useNavigate();
 
     const [userEmail, setUserEmail] = useState("");
@@ -10,7 +10,7 @@ function LandingPage() {
 
     const [canLogin, setCanLogin] = useState(false);
 
-    // runs when "canLogin". Should happen when its confirmed user has an account
+    // runs when "canLogin" is updated. Should happen when its confirmed user has an account
     useEffect(() => {
         if (canLogin) {
             //for testing, will need to be removed in real version
@@ -21,9 +21,12 @@ function LandingPage() {
 
     //will need to be updated to check for user account in database
     function checkDetails() {
+        //will need to be conditional to check the user can log in
         setCanLogin(true);
+        //will need conditional to check if the user is an event organiser
+        setIsEO(true);
     }
-
+    //navigate to the signup
     function signUp() {
         navigate("/signup")
     }
@@ -47,8 +50,8 @@ function LandingPage() {
                         onChange={(e) => setUserEmail(e.target.value)}
                     />
                     <br />
-                    <button onClick={checkDetails}>Login</button>
-                    <p>
+                    <button className="loginBtn" onClick={checkDetails}>Login</button>
+                    <p className="signupText">
                         Need an account? <span className="signUpBtn" onClick={signUp}>Sign Up</span>
                     </p>
                 </div>
