@@ -84,11 +84,15 @@ INSERT INTO interests (name) VALUES
 ('Hiking'),
 ('Board Games');
 
-INSERT INTO users (first_name, last_name, email, password_hash, job_role) VALUES
-('Alice', 'Smith', 'alice@test.com', 'hash', 'employee'),
-('Bob', 'Jones', 'bob@test.com', 'hash', 'employee'),
-('Charlie', 'Brown', 'charlie@test.com', 'hash', 'employee'),
-('Dana', 'White', 'dana@test.com', 'hash', 'admin');
+INSERT INTO users (first_name, last_name, email, password_hash, job_role, created_at) VALUES
+('Alice', 'Smith', 'alice@test.com', 'hash', 'employee', '2026-04-01 09:00:00'),
+('Bob', 'Jones', 'bob@test.com', 'hash', 'employee', '2026-03-01 09:00:00'),
+('Charlie', 'Brown', 'charlie@test.com', 'hash', 'employee', '2026-02-01 09:00:00'),
+('Dana', 'White', 'dana@test.com', 'hash', 'admin', '2026-02-01 09:00:00'),
+('Edward', 'Smith', 'edward@test.com', 'hash', 'employee', '2026-01-01 09:00:00'),
+('Florence', 'Jones', 'florence@test.com', 'hash', 'employee', '2025-12-01 09:00:00'),
+('Geneva', 'Brown', 'geneva@test.com', 'hash', 'employee', '2025-11-01 09:00:00'),
+('Hugh', 'White', 'hugh@test.com', 'hash', 'admin', '2025-11-01 09:00:00');
 
 INSERT INTO user_interests (user_id, interest_id) VALUES
 (1, 1), -- Alice likes Running
