@@ -7,7 +7,7 @@ class Event {
     event_date,
     location,
     primary_category_name,
-    user_email, // 👈 IMPORTANT (comes from frontend)
+    user_email,
   }) {
     this.title = title;
     this.description = description;
@@ -17,14 +17,13 @@ class Event {
     this.user_email = user_email;
   }
 
-  // ✅ Create new event + register creator
   async save() {
     const client = await db.connect();
 
     try {
       await client.query("BEGIN");
 
-      // 1️⃣ Insert event
+      // Create event
       const eventResult = await client.query(
         `INSERT INTO events (title, description, category_name, location, event_date)
          VALUES ($1, $2, $3, $4, $5)
@@ -40,23 +39,31 @@ class Event {
 
       const newEvent = eventResult.rows[0];
 
-      // 2️⃣ Insert into event_registrations
+      //Register creator (confirmed)
       await client.query(
         `INSERT INTO event_registrations (user_email, event_id, status)
          VALUES ($1, $2, $3)`,
-        [
-          this.user_email,
-          newEvent.id,
-          "registered", // or "unresponsive" if you want pending instead
-        ]
+        [this.user_email, newEvent.id, "registered"]
       );
+
+      console.log("CATEGORY BEING USED:", this.category_name);
+
+await client.query(
+  `INSERT INTO event_registrations (user_email, event_id, status)
+   SELECT ui.user_email, $1, 'unresponsive'
+   FROM user_interests ui
+   WHERE LOWER(TRIM(ui.interest_name)) = LOWER(TRIM($2))
+   AND ui.user_email != $3
+  `,
+  [newEvent.id, this.category_name, this.user_email]
+);
 
       await client.query("COMMIT");
 
       return newEvent;
     } catch (err) {
       await client.query("ROLLBACK");
-      console.error("Error saving event + registration:", err);
+      console.error("Error saving event + registrations:", err);
       throw err;
     } finally {
       client.release();
@@ -64,27 +71,22 @@ class Event {
   }
 
   static async getPopularEvents() {
-    try {
-      const result = await db.query(`
-        SELECT 
-          e.id,
-          e.title,
-          e.description,
-          e.category_name,
-          COUNT(er.id) AS interested_count
-        FROM events e
-        LEFT JOIN event_registrations er 
-          ON e.id = er.event_id
-        GROUP BY e.id
-        ORDER BY interested_count DESC
-        LIMIT 4;
-      `);
+    const result = await db.query(`
+      SELECT 
+        e.id,
+        e.title,
+        e.description,
+        e.category_name,
+        COUNT(er.id) AS interested_count
+      FROM events e
+      LEFT JOIN event_registrations er 
+        ON e.id = er.event_id
+      GROUP BY e.id
+      ORDER BY interested_count DESC
+      LIMIT 4;
+    `);
 
-      return result.rows;
-    } catch (err) {
-      console.error("Error fetching popular events:", err);
-      throw err;
-    }
+    return result.rows;
   }
 }
 
