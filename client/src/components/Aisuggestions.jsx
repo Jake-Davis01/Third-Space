@@ -5,6 +5,8 @@ function Aisuggestions() {
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [date, setDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -25,6 +27,8 @@ function Aisuggestions() {
   const resetModalState = () => {
     setSelectedEvent(null);
     setDate("");
+    setLocation("");
+    setCategory("");
     setMessage("");
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -39,8 +43,9 @@ function Aisuggestions() {
     setGeneratorInput("");
   };
 
-  const handleCreateClick = (title, description) => {
-    setSelectedEvent({ title, description });
+  const handleCreateClick = (title, description, category_name = "") => {
+    setSelectedEvent({ title, description, category_name });
+    setCategory(category_name || "");
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -60,45 +65,56 @@ function Aisuggestions() {
     setShowCancelConfirm(false);
   };
 
-const handleSubmit = async () => {
-  console.log("SUBMIT CLICKED");
-  if (!date || !message.trim()) {
-    setShowErrorHint(true);
-    setTimeout(() => setShowErrorHint(false), 1200);
-    return;
-  }
+  const handleSubmit = async () => {
+    console.log("SUBMIT CLICKED");
 
-  try {
-    const response = await fetch("http://localhost:3000/api/events", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: selectedEvent.title,
-        description: selectedEvent.description,
-        event_date: date,
-        location: "TBD",
-        category_name: null,
-      }),
-    });
+    if (!date || !location || !category || !message.trim()) {
+      setShowErrorHint(true);
+      setTimeout(() => setShowErrorHint(false), 1200);
+      return;
+    }
 
-    const data = await response.json();
+    try {
+      setIsSubmitting(true);
+      setSubmitError("");
 
-    console.log("Event created:", data);
+      const response = await fetch("http://localhost:3000/api/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: selectedEvent.title,
+          description: selectedEvent.description,
+          event_date: date,
+          location: location,
+          category_name: category,
+        }),
+      });
 
-    setShowModal(false);
-    resetModalState();
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Request failed: ${response.status} ${errorText}`);
+      }
 
-    setShowConfirmation(true);
-    setTimeout(() => setShowConfirmation(false), 4000);
+      const data = await response.json();
 
-  } catch (err) {
-    console.error("Error creating event:", err);
-  }
-};
+      console.log("Event created:", data);
 
-  const canSubmit = date && message.trim() && !isSubmitting;
+      setShowModal(false);
+      resetModalState();
+
+      setShowConfirmation(true);
+      setTimeout(() => setShowConfirmation(false), 4000);
+    } catch (err) {
+      console.error("Error creating event:", err);
+      setSubmitError("Failed to create event.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const canSubmit = date && location && category && message.trim() && !isSubmitting;
 
   const handleGenerateClick = () => {
     if (!generatorInput.trim()) return;
@@ -111,6 +127,7 @@ const handleSubmit = async () => {
       setGeneratedIdea({
         title: "AI Suggested Event",
         description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
+        category_name: "",
       });
       setIsGenerating(false);
     }, 1500);
@@ -126,6 +143,7 @@ const handleSubmit = async () => {
       setGeneratedIdea({
         title: "AI Suggested Event",
         description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
+        category_name: "",
       });
       setIsGenerating(false);
     }, 1500);
@@ -138,6 +156,7 @@ const handleSubmit = async () => {
     resetGeneratorState();
 
     setSelectedEvent(ideaToUse);
+    setCategory(ideaToUse?.category_name || "");
     setShowModal(true);
     setSubmitError("");
   };
@@ -183,7 +202,8 @@ const handleSubmit = async () => {
                 onClick={() =>
                   handleCreateClick(
                     "Book Club",
-                    "Those options are already baked in with this model..."
+                    "Those options are already baked in with this model...",
+                    "Reading"
                   )
                 }
               >
@@ -205,7 +225,8 @@ const handleSubmit = async () => {
                 onClick={() =>
                   handleCreateClick(
                     "Tech Talks",
-                    "Those options are already baked in..."
+                    "Those options are already baked in...",
+                    ""
                   )
                 }
               >
@@ -227,7 +248,8 @@ const handleSubmit = async () => {
                 onClick={() =>
                   handleCreateClick(
                     "City Cycles",
-                    "Those options are already baked in..."
+                    "Those options are already baked in...",
+                    "Cycling"
                   )
                 }
               >
@@ -259,7 +281,8 @@ const handleSubmit = async () => {
                 onClick={() =>
                   handleCreateClick(
                     "Silent Disco Picnic",
-                    "A relaxed outdoor picnic where everyone wears headphones..."
+                    "A relaxed outdoor picnic where everyone wears headphones...",
+                    "Music"
                   )
                 }
               >
@@ -387,6 +410,68 @@ const handleSubmit = async () => {
                     min={today}
                     className="aisuggestions__input"
                   />
+                </div>
+
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !location ? "aisuggestions__error" : ""
+                  }`}
+                >
+                  <label className="aisuggestions__label">
+                    Select Location
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Choose whether the event is remote or at an office location
+                  </p>
+
+                  <select
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="aisuggestions__input"
+                  >
+                    <option value="">Choose a location</option>
+                    <option value="Fully remote">Fully remote</option>
+                    <option value="London">London</option>
+                    <option value="Edinburgh">Edinburgh</option>
+                    <option value="Manchester">Manchester</option>
+                  </select>
+                </div>
+
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !category ? "aisuggestions__error" : ""
+                  }`}
+                >
+                  <label className="aisuggestions__label">
+                    Select Category
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Choose the category that best fits this event
+                  </p>
+
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="aisuggestions__input"
+                  >
+                    <option value="">Choose a category</option>
+                    <option value="Running">Running</option>
+                    <option value="Film">Film</option>
+                    <option value="Gaming">Gaming</option>
+                    <option value="Cooking">Cooking</option>
+                    <option value="Board games">Board games</option>
+                    <option value="Hiking">Hiking</option>
+                    <option value="Photography">Photography</option>
+                    <option value="Reading">Reading</option>
+                    <option value="Yoga">Yoga</option>
+                    <option value="Cycling">Cycling</option>
+                    <option value="Music">Music</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Chess">Chess</option>
+                    <option value="Volunteering">Volunteering</option>
+                  </select>
                 </div>
 
                 <div
