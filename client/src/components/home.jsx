@@ -12,13 +12,15 @@ function Home({ name, userEventEmail }) {
     const [pastEventID, setPastEventID] = useState();
 
     //for showing the most recent past event
-   useEffect(() => {
+    useEffect(() => {
         async function getPastEvent() {
             const pastEvent = await fetch(
-                `http://localhost:3000/api/home/pastEvent/${userEventEmail}`
+                `http://localhost:3000/api/home/pastEvent/${userEventEmail}`,
             );
             const data = await pastEvent.json();
-            setPastEventTitle(data.title);
+            //console.log(data);
+            setPastEventTitle(data.title || data);
+            //console.log(`past title is ${pastEventTitle}`);
             setPastEventID(data.event_id);
         }
 
@@ -42,7 +44,7 @@ function Home({ name, userEventEmail }) {
                     email: userEventEmail,
                     rating: starValue,
                 }),
-            }
+            },
         );
 
         const data = await updateReview.json();
@@ -172,26 +174,29 @@ function Home({ name, userEventEmail }) {
             </div>
 
             <div className="container">
-                <h2>{pastEventTitle} - Feedback</h2>
-                <div className="star-rating">
-                    {[...Array(totalStars)].map((_, index) => {
-                        let starValue = index + 1;
+                <h2>Feedback</h2>
+                <h1>{pastEventTitle}</h1>
 
-                        const isActive = starValue <= (hover || rating);
+                {pastEventTitle !== "No Past Events!" ? (
+                    <div className="star-rating">
+                        {[...Array(totalStars)].map((_, index) => {
+                            let starValue = index + 1;
+                            const isActive = starValue <= (hover || rating);
 
-                        return (
-                            <span
-                                key={index}
-                                className={`star ${isActive ? "active" : ""}`}
-                                onClick={() => sendFeedback(starValue)}
-                                onMouseEnter={() => setHover(starValue)}
-                                onMouseLeave={() => setHover(0)}
-                            >
-                                ★
-                            </span>
-                        );
-                    })}
-                </div>
+                            return (
+                                <span
+                                    key={index}
+                                    className={`star ${isActive ? "active" : ""}`}
+                                    onClick={() => sendFeedback(starValue)}
+                                    onMouseEnter={() => setHover(starValue)}
+                                    onMouseLeave={() => setHover(0)}
+                                >
+                                    ★
+                                </span>
+                            );
+                        })}
+                    </div>
+                ) : null}
             </div>
         </section>
     );
