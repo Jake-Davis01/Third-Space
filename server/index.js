@@ -21,7 +21,8 @@ app.use(express.json());
 // ROUTES
 // ----------------------
 const dashboardRoutes = require("./routes/dashboard");
-const authRouter = require("./routes/auth")
+const authRouter = require("./routes/auth");
+const homeRouter = require("./routes/homeRouter");
 
 const aisuggestionsRoutes = require('./routes/aisuggestions');
 
@@ -32,6 +33,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRouter)
 
 app.use('/api', aisuggestionsRoutes);
+app.use("/api/home", homeRouter)
 
 // ----------------------
 // TEST ROUTE 

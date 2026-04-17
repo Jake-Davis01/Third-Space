@@ -2,12 +2,21 @@ const dashboardModel = require("../models/Dashboard");
 
 const getDashboard = async (req, res) => {
   try {
-    const interests = await dashboardModel.getInterests();
-    const attendance = await dashboardModel.getAttendance();
-    const ratings = await dashboardModel.getRatings();
-    const activeUsers = await dashboardModel.getActiveUsers();
-    const registeredPercent = await dashboardModel.getRegistrationPercent();
-    const userGrowth = await dashboardModel.getUserGrowth();
+    const [
+      interests,
+      attendance,
+      ratings,
+      activeUsers,
+      registeredPercent,
+      userGrowth
+    ] = await Promise.all([
+      dashboardModel.getInterests(),
+      dashboardModel.getAttendance(),
+      dashboardModel.getRatings(),
+      dashboardModel.getActiveUsers(),
+      dashboardModel.getRegistrationPercent(),
+      dashboardModel.getUserGrowth()
+    ]);
 
     res.json({
       interests: interests.rows,

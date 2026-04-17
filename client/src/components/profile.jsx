@@ -1,11 +1,33 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import '../css/profile.css'
 
 function Profile() {
-    const [selected, setSelected] = useState(["Running", "Film"])
-    const [location, setLocation] = useState("London — Location")
+    const [selected, setSelected] = useState([])
+    const [location, setLocation] = useState("")
     const [meetup, setMeetup] = useState("flexible")
     const [saved, setSaved] = useState(false)
+    const [loading, setLoading] = useState(true)
+
+    const userEmail = localStorage.getItem("userEmail")
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/auth/profile/${userEmail}`)
+                const data = await response.json()
+
+                setLocation(data.officeLocation || "")
+                setMeetup(data.meetupPreference || "flexible")
+                setSelected(data.userInterests || [])
+            } catch (err) {
+                console.error("Failed to load profile:", err.message)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchProfile()
+    }, [])
 
     const toggle = (interest) => {
         if (selected.includes(interest)) {
@@ -15,10 +37,33 @@ function Profile() {
         }
     }
 
-    const handleSave = () => {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2000)
+    const handleSave = async () => {
+        if (selected.length < 3) {
+            alert("Please select at least 3 interests.")
+            return
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/auth/profile/${userEmail}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    office_location: location,
+                    meetup_preference: meetup,
+                    user_interests: selected,
+                }),
+            })
+
+            if (!response.ok) throw new Error("Failed to save")
+
+            setSaved(true)
+            setTimeout(() => setSaved(false), 2000)
+        } catch (err) {
+            console.error(err.message)
+        }
     }
+
+    if (loading) return <p>Loading profile...</p>
 
     return (
         <div className="profile-section">
@@ -32,11 +77,12 @@ function Profile() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                 >
-                    <option>London — Location</option>
-                    <option>Manchester — Location</option>
-                    <option>Birmingham — Location</option>
-                    <option>Edinburgh — Location</option>
-                    <option>Fully remote</option>
+                    <option value="">Select office location</option>
+                    <option value="London">London</option>
+                    <option value="Manchester">Manchester</option>
+                    <option value="Birmingham">Birmingham</option>
+                    <option value="Edinburgh">Edinburgh</option>
+                    <option value="Fully remote">Fully remote</option>
                 </select>
             </div>
 
