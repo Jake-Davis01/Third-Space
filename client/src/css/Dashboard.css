@@ -83,7 +83,7 @@
   height: 25px;          
 
   background-color: var(--secondary); /* was random rgb */
-  color: var(--text-light);
+  color: #ffffff;
 
   border: none;
   border-radius: 25px;

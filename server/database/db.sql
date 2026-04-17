@@ -147,9 +147,9 @@ INSERT INTO events (title, description, category_name, location, event_date, cre
 
 INSERT INTO event_registrations (user_email, event_id, status) VALUES
 -- Alice
-('alice@test.com', 1, 'registered'),
+('alice@test.com', 1, 'attended'),
 ('alice@test.com', 2, 'registered'),
-('alice@test.com', 5, 'registered'),
+('alice@test.com', 5, 'attended'),
 
 -- Bob
 ('bob@test.com', 3, 'registered'),
@@ -157,7 +157,7 @@ INSERT INTO event_registrations (user_email, event_id, status) VALUES
 ('bob@test.com', 4, 'registered'),
 
 -- Charlie
-('charlie@test.com', 1, 'registered'),
+('charlie@test.com', 1, 'attended'),
 ('charlie@test.com', 5, 'registered'),
 ('charlie@test.com', 3, 'declined'),
 
@@ -168,12 +168,12 @@ INSERT INTO event_registrations (user_email, event_id, status) VALUES
 
 -- Edward
 ('edward@test.com', 1, 'registered'),
-('edward@test.com', 3, 'registered'),
+('edward@test.com', 3, 'attended'),
 ('edward@test.com', 4, 'unresponsive'),
 
 -- Florence
 ('florence@test.com', 2, 'registered'),
-('florence@test.com', 5, 'registered'),
+('florence@test.com', 5, 'attended'),
 ('florence@test.com', 1, 'cancelled');
 
 
