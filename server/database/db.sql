@@ -47,6 +47,15 @@ CREATE TABLE events (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- So that user can assign multiple categories to one event
+CREATE TABLE event_categories (
+  event_id INT REFERENCES events(id) ON DELETE CASCADE,
+  category_name TEXT REFERENCES interests(name) ON DELETE CASCADE,
+  PRIMARY KEY (event_id, category_name)
+);
+
+
 -- To list all people regestried to an event
 CREATE TABLE event_registrations (
   id SERIAL PRIMARY KEY,
