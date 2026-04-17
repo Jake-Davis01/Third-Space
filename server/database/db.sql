@@ -141,7 +141,7 @@ INSERT INTO user_interests (user_email, interest_name) VALUES
 INSERT INTO events (title, description, category_name, location, event_date, created_at) VALUES
 ('Morning Running Club', 'A casual 5K run around the park to start the day.', 'Running', 'London', '2026-04-20', '2026-01-01 09:00:00'),
 ('Film Night Social', 'Weekly movie screening and discussion night.', 'Film', 'Edinburgh', '2026-04-22', '2026-01-01 09:00:00'),
-('Board Games & Chill', 'Bring your favourite board game and meet new people.', 'Board games', 'Manchester', '2026-04-24', '2026-01-01 09:00:00'),
+('Board Games & Chill', 'Bring your favourite board game and meet new people.', 'Board games', 'Manchester', '2026-04-13', '2026-01-01 09:00:00'),
 ('Beginner Yoga Session', 'Relaxing yoga session for all levels.', 'Yoga', 'Fully remote', '2026-04-25', '2026-01-01 09:00:00'),
 ('Travel Talk Meetup', 'Share travel stories and plan future trips.', 'Travel', 'Fully remote', '2026-04-27', '2026-01-01 09:00:00');
 

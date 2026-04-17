@@ -35,7 +35,7 @@ function LandingPage({ setIsEO, setName, setUserEventEmail }) {
         );
         //turn the response into a js object
         const data = await userAccountDetails.json();
-        console.log(data);
+        //console.log(data);
         //check if an event organiser is trying to login
         if (data.jobRole === "admin") {
             setIsEO(true);
