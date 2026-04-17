@@ -5,7 +5,7 @@ jest.mock("../models/User", () => ({
 }));
 
 const User = require("../models/User");
-const { register, login } = require("../controllers/user");
+const { register, login } = require("../../../../server/controller/user");
 
 describe("User controller", () => {
   let req, res;

@@ -2,6 +2,13 @@ import { useState } from "react";
 import "../css/signup.css";
 import { useNavigate } from "react-router-dom";
 
+const INTERESTS = [
+    "Running", "Film", "Gaming", "Cooking",
+    "Board games", "Hiking", "Photography", "Reading",
+    "Yoga", "Cycling", "Music", "Travel",
+    "Chess", "Volunteering",
+]
+
 function SignUp() {
     const navigate = useNavigate();
     const [selectedInterests, setSelectedInterests] = useState([]);
@@ -27,12 +34,23 @@ function SignUp() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const validate = () => {
+        if (!formData.first_name.trim()) return "First name is required."
+        if (!formData.last_name.trim()) return "Last name is required."
+        if (!formData.email.includes("@") || !formData.email.includes(".")) return "Please enter a valid email address."
+        if (formData.password.length < 8) return "Password must be at least 8 characters."
+        if (!formData.office_location) return "Please select an office location."
+        if (selectedInterests.length < 3) return "Please select at least 3 interests."
+        return null
+    }
+
     const handleSubmit = async () => {
         setError("");
 
-        if (selectedInterests.length < 3) {
-            setError("Please select at least 3 interests.");
-            return;
+        const validationError = validate()
+        if (validationError) {
+            setError(validationError)
+            return
         }
 
         try {
@@ -48,7 +66,8 @@ function SignUp() {
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Registration failed");
-            localStorage.setItem("userEmail", formData.email)
+
+            localStorage.setItem("userEmail", formData.email);
             navigate("/home");
         } catch (err) {
             setError(err.message);
@@ -91,7 +110,7 @@ function SignUp() {
                         <input
                             type="password"
                             name="password"
-                            placeholder="Password"
+                            placeholder="Password (min 8 characters)"
                             className="signup-input"
                             onChange={handleChange}
                         />
@@ -134,12 +153,7 @@ function SignUp() {
                             </p>
                             <div className="signup-inner">
                                 <div className="signup-interests">
-                                    {[
-                                        "Running", "Film", "Gaming", "Cooking",
-                                        "Board games", "Hiking", "Photography", "Reading",
-                                        "Yoga", "Cycling", "Music", "Travel",
-                                        "Chess", "Volunteering",
-                                    ].map((interest) => (
+                                    {INTERESTS.map((interest) => (
                                         <button
                                             key={interest}
                                             className={`signup-tag ${selectedInterests.includes(interest) ? "signup-tag-selected" : ""}`}
