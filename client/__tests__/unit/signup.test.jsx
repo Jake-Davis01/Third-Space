@@ -12,6 +12,17 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+const fillValidForm = () => {
+  fireEvent.change(screen.getByPlaceholderText('First name'), { target: { name: 'first_name', value: 'John' } })
+  fireEvent.change(screen.getByPlaceholderText('Last name'), { target: { name: 'last_name', value: 'Doe' } })
+  fireEvent.change(screen.getByPlaceholderText('Email'), { target: { name: 'email', value: 'john@test.com' } })
+  fireEvent.change(screen.getByPlaceholderText('Password (min 8 characters)'), { target: { name: 'password', value: 'password123' } })
+  fireEvent.change(screen.getByRole('combobox'), { target: { name: 'office_location', value: 'london' } })
+  fireEvent.click(screen.getByRole('button', { name: /running/i }))
+  fireEvent.click(screen.getByRole('button', { name: /film/i }))
+  fireEvent.click(screen.getByRole('button', { name: /gaming/i }))
+}
+
 describe('SignUp component', () => {
   beforeEach(() => {
     mockNavigate.mockClear()
@@ -23,8 +34,44 @@ describe('SignUp component', () => {
     expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument()
   })
 
+  test('shows error if first name is empty', async () => {
+    render(<MemoryRouter><SignUp /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+    await waitFor(() => {
+      expect(screen.getByText(/first name is required/i)).toBeInTheDocument()
+    })
+  })
+
+  test('shows error if email is invalid', async () => {
+    render(<MemoryRouter><SignUp /></MemoryRouter>)
+    fireEvent.change(screen.getByPlaceholderText('First name'), { target: { name: 'first_name', value: 'John' } })
+    fireEvent.change(screen.getByPlaceholderText('Last name'), { target: { name: 'last_name', value: 'Doe' } })
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { name: 'email', value: 'notanemail' } })
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+    await waitFor(() => {
+      expect(screen.getByText(/valid email/i)).toBeInTheDocument()
+    })
+  })
+
+  test('shows error if password too short', async () => {
+    render(<MemoryRouter><SignUp /></MemoryRouter>)
+    fireEvent.change(screen.getByPlaceholderText('First name'), { target: { name: 'first_name', value: 'John' } })
+    fireEvent.change(screen.getByPlaceholderText('Last name'), { target: { name: 'last_name', value: 'Doe' } })
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { name: 'email', value: 'john@test.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Password (min 8 characters)'), { target: { name: 'password', value: '123' } })
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+    await waitFor(() => {
+      expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument()
+    })
+  })
+
   test('shows error if fewer than 3 interests selected', async () => {
     render(<MemoryRouter><SignUp /></MemoryRouter>)
+    fireEvent.change(screen.getByPlaceholderText('First name'), { target: { name: 'first_name', value: 'John' } })
+    fireEvent.change(screen.getByPlaceholderText('Last name'), { target: { name: 'last_name', value: 'Doe' } })
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { name: 'email', value: 'john@test.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Password (min 8 characters)'), { target: { name: 'password', value: 'password123' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { name: 'office_location', value: 'london' } })
     fireEvent.click(screen.getByRole('button', { name: /create account/i }))
     await waitFor(() => {
       expect(screen.getByText(/at least 3 interests/i)).toBeInTheDocument()
@@ -37,9 +84,7 @@ describe('SignUp component', () => {
       json: async () => ({ message: 'success' })
     })
     render(<MemoryRouter><SignUp /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('button', { name: /running/i }))
-    fireEvent.click(screen.getByRole('button', { name: /film/i }))
-    fireEvent.click(screen.getByRole('button', { name: /gaming/i }))
+    fillValidForm()
     fireEvent.click(screen.getByRole('button', { name: /create account/i }))
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/home')
@@ -49,12 +94,10 @@ describe('SignUp component', () => {
   test('shows error on failed registration', async () => {
     global.fetch.mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ message: 'Registration failed' })
+      json: async () => ({ error: 'Registration failed' })
     })
     render(<MemoryRouter><SignUp /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('button', { name: /running/i }))
-    fireEvent.click(screen.getByRole('button', { name: /film/i }))
-    fireEvent.click(screen.getByRole('button', { name: /gaming/i }))
+    fillValidForm()
     fireEvent.click(screen.getByRole('button', { name: /create account/i }))
     await waitFor(() => {
       expect(screen.getByText(/registration failed/i)).toBeInTheDocument()
