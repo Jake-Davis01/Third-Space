@@ -2,7 +2,13 @@ const Event = require("../models/Event");
 
 const createEvent = async (req, res) => {
   try {
-    const event = new Event(req.body);
+    console.log("REQ BODY:", req.body);
+
+    const event = new Event({
+      ...req.body,
+      user_email: req.body.user_email, // 👈 ensure it's passed
+    });
+
     const savedEvent = await event.save();
 
     res.status(201).json(savedEvent);
@@ -12,4 +18,15 @@ const createEvent = async (req, res) => {
   }
 };
 
-module.exports = { createEvent };
+const getPopularEvents = async (req, res) => {
+  try {
+    const events = await Event.getPopularEvents();
+    console.log("POPULAR EVENTS:", events);
+    res.status(200).json(events);
+  } catch (err) {
+    console.error("Error fetching popular events:", err);
+    res.status(500).json({ error: "Failed to fetch popular events" });
+  }
+};
+
+module.exports = { createEvent, getPopularEvents };

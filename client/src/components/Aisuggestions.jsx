@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../css/Aisuggestions.css";
 
 function Aisuggestions() {
@@ -6,13 +6,16 @@ function Aisuggestions() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [primaryCategory, setPrimaryCategory] = useState("");
   const [message, setMessage] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showErrorHint, setShowErrorHint] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [popularEvents, setPopularEvents] = useState([]);
+  const [isLoadingPopular, setIsLoadingPopular] = useState(true);
 
   // generator states
   const [generatorInput, setGeneratorInput] = useState("");
@@ -21,14 +24,57 @@ function Aisuggestions() {
   const [showGeneratorCancelConfirm, setShowGeneratorCancelConfirm] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const mockInterestedCount = 42;
   const today = new Date().toISOString().split("T")[0];
+
+  const categoryOptions = [
+    "Running",
+    "Film",
+    "Gaming",
+    "Cooking",
+    "Board games",
+    "Hiking",
+    "Photography",
+    "Reading",
+    "Yoga",
+    "Cycling",
+    "Music",
+    "Travel",
+    "Chess",
+    "Volunteering",
+  ];
+
+  useEffect(() => {
+    const fetchPopularEvents = async () => {
+      try {
+        setIsLoadingPopular(true);
+
+        const response = await fetch("http://localhost:3000/api/events/popular");
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Request failed: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log("POPULAR EVENTS FROM API:", data);
+        setPopularEvents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Error fetching popular events:", err);
+        setPopularEvents([]);
+      } finally {
+        setIsLoadingPopular(false);
+      }
+    };
+
+    fetchPopularEvents();
+  }, []);
 
   const resetModalState = () => {
     setSelectedEvent(null);
     setDate("");
     setLocation("");
-    setCategory("");
+    setCategories([]);
+    setPrimaryCategory("");
     setMessage("");
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -43,9 +89,15 @@ function Aisuggestions() {
     setGeneratorInput("");
   };
 
-  const handleCreateClick = (title, description, category_name = "") => {
-    setSelectedEvent({ title, description, category_name });
-    setCategory(category_name || "");
+  const handleCreateClick = (
+    title,
+    description,
+    defaultCategories = [],
+    interestedCount = 0
+  ) => {
+    setSelectedEvent({ title, description, interested_count: interestedCount });
+    setCategories(defaultCategories);
+    setPrimaryCategory(defaultCategories[0] || "");
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -65,10 +117,23 @@ function Aisuggestions() {
     setShowCancelConfirm(false);
   };
 
+  const toggleCategory = (category) => {
+    if (categories.includes(category)) {
+      const updatedCategories = categories.filter((item) => item !== category);
+      setCategories(updatedCategories);
+
+      if (primaryCategory === category) {
+        setPrimaryCategory("");
+      }
+    } else {
+      setCategories([...categories, category]);
+    }
+  };
+
   const handleSubmit = async () => {
     console.log("SUBMIT CLICKED");
 
-    if (!date || !location || !category || !message.trim()) {
+    if (!date || !location || categories.length === 0 || !primaryCategory || !message.trim()) {
       setShowErrorHint(true);
       setTimeout(() => setShowErrorHint(false), 1200);
       return;
@@ -77,6 +142,12 @@ function Aisuggestions() {
     try {
       setIsSubmitting(true);
       setSubmitError("");
+
+      const userEmail = localStorage.getItem("userEmail");
+
+      console.log("userEmail:", userEmail);
+      console.log("primary category:", primaryCategory);
+      console.log("all categories:", categories);
 
       const response = await fetch("http://localhost:3000/api/events", {
         method: "POST",
@@ -87,8 +158,10 @@ function Aisuggestions() {
           title: selectedEvent.title,
           description: selectedEvent.description,
           event_date: date,
-          location: location,
-          category_name: category,
+          location,
+          primary_category_name: primaryCategory,
+          categories,
+          user_email: userEmail,
         }),
       });
 
@@ -114,7 +187,13 @@ function Aisuggestions() {
     }
   };
 
-  const canSubmit = date && location && category && message.trim() && !isSubmitting;
+  const canSubmit =
+    date &&
+    location &&
+    categories.length > 0 &&
+    primaryCategory &&
+    message.trim() &&
+    !isSubmitting;
 
   const handleGenerateClick = () => {
     if (!generatorInput.trim()) return;
@@ -127,7 +206,7 @@ function Aisuggestions() {
       setGeneratedIdea({
         title: "AI Suggested Event",
         description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
-        category_name: "",
+        categories: [],
       });
       setIsGenerating(false);
     }, 1500);
@@ -143,7 +222,7 @@ function Aisuggestions() {
       setGeneratedIdea({
         title: "AI Suggested Event",
         description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
-        category_name: "",
+        categories: [],
       });
       setIsGenerating(false);
     }, 1500);
@@ -156,7 +235,8 @@ function Aisuggestions() {
     resetGeneratorState();
 
     setSelectedEvent(ideaToUse);
-    setCategory(ideaToUse?.category_name || "");
+    setCategories(ideaToUse?.categories || []);
+    setPrimaryCategory(ideaToUse?.categories?.[0] || "");
     setShowModal(true);
     setSubmitError("");
   };
@@ -174,6 +254,9 @@ function Aisuggestions() {
     setShowGeneratorCancelConfirm(false);
   };
 
+  const topSuggestions = popularEvents.slice(0, 3);
+  const nicheSuggestion = popularEvents[3];
+
   return (
     <div className="aisuggestions__container">
       <div className="aisuggestions__header">
@@ -189,74 +272,39 @@ function Aisuggestions() {
         <div className="aisuggestions__sectionBox">
           <h3 className="aisuggestions__sectionTitle">Top Suggestions</h3>
 
-          <div className="aisuggestions__card">
-            <div className="aisuggestions__cardHeader">
-              <div className="aisuggestions__cardBody">
-                <strong className="aisuggestions__cardTitle">Book Club</strong>
-                <p className="aisuggestions__cardText">
-                  Those options are already baked in with this model...
-                </p>
+          {isLoadingPopular ? (
+            <p className="aisuggestions__cardText">Loading suggestions...</p>
+          ) : topSuggestions.length > 0 ? (
+            topSuggestions.map((event) => (
+              <div className="aisuggestions__card" key={event.id}>
+                <div className="aisuggestions__cardHeader">
+                  <div className="aisuggestions__cardBody">
+                    <strong className="aisuggestions__cardTitle">{event.title}</strong>
+                    <p className="aisuggestions__cardText">{event.description}</p>
+                  </div>
+                  <button
+                    className="aisuggestions__cardButton"
+                    onClick={() =>
+                      handleCreateClick(
+                        event.title,
+                        event.description,
+                        event.categories && event.categories.length > 0
+                          ? event.categories
+                          : event.category_name
+                          ? [event.category_name]
+                          : [],
+                        Number(event.interested_count) || 0
+                      )
+                    }
+                  >
+                    Create
+                  </button>
+                </div>
               </div>
-              <button
-                className="aisuggestions__cardButton"
-                onClick={() =>
-                  handleCreateClick(
-                    "Book Club",
-                    "Those options are already baked in with this model...",
-                    "Reading"
-                  )
-                }
-              >
-                Create
-              </button>
-            </div>
-          </div>
-
-          <div className="aisuggestions__card">
-            <div className="aisuggestions__cardHeader">
-              <div className="aisuggestions__cardBody">
-                <strong className="aisuggestions__cardTitle">Tech Talks</strong>
-                <p className="aisuggestions__cardText">
-                  Those options are already baked in with this model...
-                </p>
-              </div>
-              <button
-                className="aisuggestions__cardButton"
-                onClick={() =>
-                  handleCreateClick(
-                    "Tech Talks",
-                    "Those options are already baked in...",
-                    ""
-                  )
-                }
-              >
-                Create
-              </button>
-            </div>
-          </div>
-
-          <div className="aisuggestions__card">
-            <div className="aisuggestions__cardHeader">
-              <div className="aisuggestions__cardBody">
-                <strong className="aisuggestions__cardTitle">City Cycles</strong>
-                <p className="aisuggestions__cardText">
-                  Those options are already baked in with this model...
-                </p>
-              </div>
-              <button
-                className="aisuggestions__cardButton"
-                onClick={() =>
-                  handleCreateClick(
-                    "City Cycles",
-                    "Those options are already baked in...",
-                    "Cycling"
-                  )
-                }
-              >
-                Create
-              </button>
-            </div>
-          </div>
+            ))
+          ) : (
+            <p className="aisuggestions__cardText">No suggestions available yet.</p>
+          )}
         </div>
       </div>
 
@@ -266,30 +314,52 @@ function Aisuggestions() {
             Let's Try Something Different
           </h3>
 
-          <div className="aisuggestions__nicheCard">
-            <div className="aisuggestions__cardHeader">
-              <div className="aisuggestions__cardBody">
-                <strong className="aisuggestions__cardTitle">
-                  Silent Disco Picnic
-                </strong>
-                <p className="aisuggestions__cardText">
-                  A relaxed outdoor picnic where everyone wears headphones...
-                </p>
+          {isLoadingPopular ? (
+            <p className="aisuggestions__cardText">Loading event...</p>
+          ) : nicheSuggestion ? (
+            <div className="aisuggestions__nicheCard">
+              <div className="aisuggestions__cardHeader">
+                <div className="aisuggestions__cardBody">
+                  <strong className="aisuggestions__cardTitle">
+                    {nicheSuggestion.title}
+                  </strong>
+                  <p className="aisuggestions__cardText">
+                    {nicheSuggestion.description}
+                  </p>
+                </div>
+                <button
+                  className="aisuggestions__cardButton"
+                  onClick={() =>
+                    handleCreateClick(
+                      nicheSuggestion.title,
+                      nicheSuggestion.description,
+                      nicheSuggestion.categories && nicheSuggestion.categories.length > 0
+                        ? nicheSuggestion.categories
+                        : nicheSuggestion.category_name
+                        ? [nicheSuggestion.category_name]
+                        : [],
+                      Number(nicheSuggestion.interested_count) || 0
+                    )
+                  }
+                >
+                  Create
+                </button>
               </div>
-              <button
-                className="aisuggestions__cardButton"
-                onClick={() =>
-                  handleCreateClick(
-                    "Silent Disco Picnic",
-                    "A relaxed outdoor picnic where everyone wears headphones...",
-                    "Music"
-                  )
-                }
-              >
-                Create
-              </button>
             </div>
-          </div>
+          ) : (
+            <div className="aisuggestions__nicheCard">
+              <div className="aisuggestions__cardHeader">
+                <div className="aisuggestions__cardBody">
+                  <strong className="aisuggestions__cardTitle">
+                    No event available
+                  </strong>
+                  <p className="aisuggestions__cardText">
+                    Check back later for more suggestions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -321,6 +391,7 @@ function Aisuggestions() {
             <button
               className="aisuggestions__closeBtn"
               onClick={closeGeneratorConfirm}
+              type="button"
             >
               ✕
             </button>
@@ -377,6 +448,7 @@ function Aisuggestions() {
             <button
               className="aisuggestions__closeBtn"
               onClick={handleCloseClick}
+              type="button"
             >
               ✕
             </button>
@@ -387,7 +459,8 @@ function Aisuggestions() {
                 <p>{selectedEvent?.description}</p>
 
                 <p>
-                  <strong>Interested Members:</strong> {mockInterestedCount}
+                  <strong>Interested Members:</strong>{" "}
+                  {selectedEvent?.interested_count ?? 0}
                 </p>
 
                 <div
@@ -435,42 +508,69 @@ function Aisuggestions() {
                     <option value="London">London</option>
                     <option value="Edinburgh">Edinburgh</option>
                     <option value="Manchester">Manchester</option>
+                    <option value="Birmingham">Birmingham</option>
                   </select>
                 </div>
 
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !category ? "aisuggestions__error" : ""
+                    showErrorHint && categories.length === 0
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">
-                    Select Category
+                    Select Category / Categories
                   </label>
 
                   <p className="aisuggestions__helperText">
-                    Choose the category that best fits this event
+                    Pick one or more categories for this event.
+                  </p>
+
+                  <div className="aisuggestions__categoryBox">
+                    <div className="aisuggestions__categories">
+                      {categoryOptions.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          className={`aisuggestions__tag ${
+                            categories.includes(category)
+                              ? "aisuggestions__tagSelected"
+                              : ""
+                          }`}
+                          onClick={() => toggleCategory(category)}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !primaryCategory ? "aisuggestions__error" : ""
+                  }`}
+                >
+                  <label className="aisuggestions__label">
+                    Select Primary Category
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Choose the main category that should be saved in the events table.
                   </p>
 
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    value={primaryCategory}
+                    onChange={(e) => setPrimaryCategory(e.target.value)}
                     className="aisuggestions__input"
                   >
-                    <option value="">Choose a category</option>
-                    <option value="Running">Running</option>
-                    <option value="Film">Film</option>
-                    <option value="Gaming">Gaming</option>
-                    <option value="Cooking">Cooking</option>
-                    <option value="Board games">Board games</option>
-                    <option value="Hiking">Hiking</option>
-                    <option value="Photography">Photography</option>
-                    <option value="Reading">Reading</option>
-                    <option value="Yoga">Yoga</option>
-                    <option value="Cycling">Cycling</option>
-                    <option value="Music">Music</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Chess">Chess</option>
-                    <option value="Volunteering">Volunteering</option>
+                    <option value="">Choose a primary category</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
