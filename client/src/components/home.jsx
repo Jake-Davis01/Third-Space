@@ -1,26 +1,37 @@
 import "../css/home.css";
-
 import { useEffect, useState } from "react";
 
 function Home({ name, userEventEmail }) {
-    //for star rating
     const totalStars = 5;
+
+    const [loading, setLoading] = useState(true);
 
     const [rating, setRating] = useState(0);
     const [hover, setHover] = useState(0);
     const [pastEventTitle, setPastEventTitle] = useState();
     const [pastEventID, setPastEventID] = useState();
 
-    //for showing the most recent past event
+    const [eventName, setEventName] = useState();
+    const [eventLocation, setEventLocation] = useState();
+    const [eventDate, setEventDate] = useState();
+    const [eventDescription, setEventDescription] = useState();
+    const [registrationID, setRegistrationID] = useState();
+
+    const [refresh, setRefresh] = useState(0);
+
+    const [upcomingEventName, setUpcomingEventName] = useState();
+    const [upcomingEventLocation, setUpcomingEventLocation] = useState();
+    const [upcomingEventDate, setUpcomingEventDate] = useState();
+    const [upcomingEventDescription, setUpcomingEventDescription] = useState();
+
+    // Load past event
     useEffect(() => {
         async function getPastEvent() {
             const pastEvent = await fetch(
                 `http://localhost:3000/api/home/pastEvent/${userEventEmail}`,
             );
             const data = await pastEvent.json();
-            //console.log(data);
             setPastEventTitle(data.title || data);
-            //console.log(`past title is ${pastEventTitle}`);
             setPastEventID(data.event_id);
         }
 
@@ -29,16 +40,71 @@ function Home({ name, userEventEmail }) {
         }
     }, [userEventEmail]);
 
+    // Load new + upcoming events
+    useEffect(() => {
+        async function loadData() {
+            try {
+                await Promise.all([newEvent(), nextEvent()]);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function newEvent() {
+            const res = await fetch(
+                `http://localhost:3000/api/home/newEvent/${userEventEmail}`,
+            );
+            const data = await res.json();
+
+            if (data !== "No New Events!") {
+                setEventName(data.title);
+                setEventLocation(data.location);
+                const formattedDate = new Date(data.event_date).toLocaleDateString("en-GB", {
+                    timeZone: "UTC",
+                });
+                setEventDate(formattedDate);
+                setEventDescription(data.description);
+                setRegistrationID(data.registration_id);
+            } else {
+                setEventName(data);
+            }
+        }
+
+        async function nextEvent() {
+            const res = await fetch(
+                `http://localhost:3000/api/home/nextEvent/${userEventEmail}`,
+            );
+            const data = await res.json();
+
+            if (data !== "No Upcoming Events!") {
+                setUpcomingEventName(data.title);
+                setUpcomingEventLocation(data.location);
+                const formattedDate = new Date(data.event_date).toLocaleDateString("en-GB", {
+                    timeZone: "UTC",
+                });
+                setUpcomingEventDate(formattedDate);
+                setUpcomingEventDescription(data.description);
+            } else {
+                setUpcomingEventName(data);
+            }
+        }
+
+        if (userEventEmail) {
+            setLoading(true);
+            loadData();
+        }
+    }, [userEventEmail, refresh]);
+
     async function sendFeedback(starValue) {
         setRating(starValue);
 
         const updateReview = await fetch(
             `http://localhost:3000/api/home/pastEvent/`,
             {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     eventID: pastEventID,
                     email: userEventEmail,
@@ -51,82 +117,23 @@ function Home({ name, userEventEmail }) {
         console.log(data);
     }
 
-    //for new events to the user
-    const [eventName, setEventName] = useState();
-    const [eventLocation, setEventLocation] = useState();
-    const [eventDate, setEventDate] = useState();
-    const [eventDescription, setEventDescription] = useState();
-    const [registrationID, setRegistrationID] = useState();
-    //for retriggering the fetch request to see what new event is available to the user
-    const [refresh, setRefresh] = useState(0);
-
-    //for the users upcoming event
-    const [upcomingEventName, setUpcomingEventName] = useState();
-    const [upcomingEventLocation, setUpcomingEventLocation] = useState();
-    const [upcomingEventDate, setUpcomingEventDate] = useState();
-    const [upcomingEventDescription, setUpcomingEventDescription] = useState();
-
-    //console.log(userID);
-    //effect called when page loads, updates any new events for the user and their upcoming one
-    useEffect(() => {
-        async function newEvent() {
-            //console.log(userEventEmail);
-            //GET request
-            const newEventDetails = await fetch(
-                `http://localhost:3000/api/home/newEvent/${userEventEmail}`,
-            );
-            const data = await newEventDetails.json();
-            //console.log(data);
-            if (data !== "No New Events!") {
-                setEventName(data.title);
-                setEventLocation(data.location);
-                const formattedDate = new Date(
-                    data.event_date,
-                ).toLocaleDateString("en-GB", {
-                    timeZone: "UTC",
-                });
-                setEventDate(formattedDate);
-                setEventDescription(data.description);
-                setRegistrationID(data.registration_id);
-            } else {
-                setEventName(data);
-            }
-        }
-
-        async function nextEvent() {
-            const nextEventDetails = await fetch(
-                `http://localhost:3000/api/home/nextEvent/${userEventEmail}`,
-            );
-            const nextEventData = await nextEventDetails.json();
-            //console.log(nextEventData);
-            if (nextEventData !== "No Upcoming Events!") {
-                setUpcomingEventName(nextEventData.title);
-                setUpcomingEventLocation(nextEventData.location);
-                const formattedDate = new Date(
-                    nextEventData.event_date,
-                ).toLocaleDateString("en-GB", {
-                    timeZone: "UTC",
-                });
-                setUpcomingEventDate(formattedDate);
-                setUpcomingEventDescription(nextEventData.description);
-            } else {
-                setUpcomingEventName(nextEventData);
-            }
-        }
-        nextEvent();
-        newEvent();
-    }, [userEventEmail, refresh]);
-
     async function joinEvent() {
-        //PATCH request
         const updateAttendance = await fetch(
             `http://localhost:3000/api/home/newEvent/${registrationID}`,
-            {
-                method: "PATCH",
-            },
+            { method: "PATCH" },
         );
         console.log(updateAttendance);
         setRefresh((prev) => prev + 1);
+    }
+
+    // 🔵 LOADER UI
+    if (loading) {
+        return (
+            <div className="loader-container">
+                <div className="spinner"></div>
+                <h2>Page Loading...</h2>
+            </div>
+        );
     }
 
     return (
@@ -162,8 +169,7 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{upcomingEventName}</h1>
                         <p className="date">
-                            Date: {upcomingEventDate} -- Location:{" "}
-                            {upcomingEventLocation}
+                            Date: {upcomingEventDate} -- Location: {upcomingEventLocation}
                         </p>
                         <p className="details">Details</p>
                         <p>{upcomingEventDescription}</p>
@@ -177,7 +183,7 @@ function Home({ name, userEventEmail }) {
                 <h2>Feedback</h2>
                 <h1>{pastEventTitle}</h1>
 
-                {pastEventTitle !== "No Past Events!" ? (
+                {pastEventTitle !== "No Past Events To Review!" ? (
                     <div className="star-rating">
                         {[...Array(totalStars)].map((_, index) => {
                             let starValue = index + 1;
