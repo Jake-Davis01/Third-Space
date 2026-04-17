@@ -5,7 +5,7 @@ const getInterests = () => {
   return db.query(`
     SELECT i.name, COUNT(*) as count
     FROM user_interests ui
-    JOIN interests i ON ui.interest_id = i.id
+    JOIN interests i ON ui.interest_name = i.name
     GROUP BY i.name
     ORDER BY count DESC;
   `);
@@ -17,7 +17,7 @@ const getAttendance = () => {
     SELECT i.name, COUNT(*) as count
     FROM event_registrations er
     JOIN events e ON er.event_id = e.id
-    JOIN interests i ON e.category_id = i.id
+    JOIN interests i ON e.category_name = i.name
     WHERE er.status = 'attended'
     GROUP BY i.name
     ORDER BY count DESC;
@@ -30,7 +30,7 @@ const getRatings = () => {
     SELECT i.name, AVG(f.rating) as avg_rating
     FROM feedback f
     JOIN events e ON f.event_id = e.id
-    JOIN interests i ON e.category_id = i.id
+    JOIN interests i ON e.category_name = i.name
     GROUP BY i.name
     ORDER BY avg_rating DESC;
   `);
@@ -45,7 +45,7 @@ const getRegistrationPercent = () => {
   return db.query(`
     SELECT 
       ROUND(
-        COUNT(DISTINCT user_id)::numeric / 500 * 100
+        COUNT(DISTINCT user_email)::numeric / 500 * 100
       ) AS percent
     FROM event_registrations;
   `);
