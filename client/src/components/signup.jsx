@@ -48,7 +48,7 @@ function SignUp() {
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Registration failed");
-
+            localStorage.setItem("userEmail", formData.email)
             navigate("/home");
         } catch (err) {
             setError(err.message);

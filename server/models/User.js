@@ -22,13 +22,21 @@ class User {
         return new User(response.rows[0]);
     }
 
-    static async getOneByEmail(email) {
-        const response = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-        if (response.rows.length != 1) {
-            throw new Error("Unable to locate user.");
-        }
-        return new User(response.rows[0]);
+   static async getOneByEmail(email) {
+    const response = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (response.rows.length != 1) {
+        throw new Error("Unable to locate user.");
     }
+
+    const interests = await db.query(
+        "SELECT interest_name FROM user_interests WHERE user_email = $1",
+        [email]
+    );
+
+    const user = new User(response.rows[0]);
+    user.userInterests = interests.rows.map(row => row.interest_name);
+    return user;
+}
 
 static async create(data) {
     const { first_name, last_name, email, password, user_interests, meetup_preference, office_location } = data;
@@ -44,7 +52,6 @@ static async create(data) {
     const newId = response.rows[0].id;
 
     // Insert each interest into the junction table
-    // user_interests comes in as an array e.g. ["Running", "Film", "Reading"]
     for (const interest of user_interests) {
         await db.query(
             `INSERT INTO user_interests (user_email, interest_name) VALUES ($1, $2)`,
@@ -53,6 +60,32 @@ static async create(data) {
     }
 
     return await User.getOneById(newId);
-}}
+}
 
+static async update(email, data) {
+    const { office_location, meetup_preference, user_interests } = data;
+
+    await db.query(
+        `UPDATE users 
+         SET office_location = $1, meetup_preference = $2 
+         WHERE email = $3`,
+        [office_location, meetup_preference, email]
+    );
+
+    
+    await db.query(
+        `DELETE FROM user_interests WHERE user_email = $1`,
+        [email]
+    );
+
+    for (const interest of user_interests) {
+        await db.query(
+            `INSERT INTO user_interests (user_email, interest_name) VALUES ($1, $2)`,
+            [email, interest]
+        );
+    }
+
+    return await User.getOneByEmail(email);
+}
+}
 module.exports = User;

@@ -45,6 +45,7 @@ function LandingPage({ setIsEO, setName, setUserEventEmail }) {
         }
         //if the user exits, let them login
         if (data.error !== "Unable to locate user.") {
+            localStorage.setItem("userEmail", data.email)
             setCanLogin(true);
             setName(data.firstName)
             setUserEventEmail(data.email)
