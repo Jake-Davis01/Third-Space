@@ -11,6 +11,6 @@ homeRouter.patch("/newEvent/:id", homeController.joinEvent)
 
 //getting / sending a review
 homeRouter.get("/pastEvent/:userEmail", homeController.recentPastEvent)
-homeRouter.patch("/pastEvent/", homeController.feedback)
+homeRouter.post("/pastEvent/", homeController.feedback)
 
 module.exports = homeRouter;
