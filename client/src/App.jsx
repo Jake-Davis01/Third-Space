@@ -42,7 +42,7 @@ function App() {
                 {/* All other pages — wrapped with NavBar */}
                 <Route element={<WithNav isEO={isEO} />}>
                     <Route path="/home" element={<Home name={name} userEventEmail={userEventEmail} />} />
-                    <Route path="/events" element={<Events />} />
+                    <Route path="/events" element={<Events userEventEmail={userEventEmail} />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/aisuggestions" element={<Aisuggestions />} />
