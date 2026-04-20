@@ -371,3 +371,18 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.aisuggestions__statusGood {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.aisuggestions__statusMedium {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.aisuggestions__statusBad {
+  color: #dc2626;
+  font-weight: 700;
+}

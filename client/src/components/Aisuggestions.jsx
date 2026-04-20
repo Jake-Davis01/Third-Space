@@ -21,7 +21,8 @@ function Aisuggestions() {
   const [generatorInput, setGeneratorInput] = useState("");
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const [generatedIdea, setGeneratedIdea] = useState(null);
-  const [showGeneratorCancelConfirm, setShowGeneratorCancelConfirm] = useState(false);
+  const [showGeneratorCancelConfirm, setShowGeneratorCancelConfirm] =
+    useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
@@ -197,6 +198,26 @@ function Aisuggestions() {
       label: `Cost: approx. £${roundedTotal} total`,
       total: roundedTotal,
     };
+  };
+
+  const getVerdictClass = (value = "") => {
+    const normalised = value.toLowerCase();
+
+    if (normalised === "good idea") return "aisuggestions__statusGood";
+    if (normalised === "maybe") return "aisuggestions__statusMedium";
+    if (normalised === "not recommended") return "aisuggestions__statusBad";
+
+    return "aisuggestions__statusMedium";
+  };
+
+  const getConfidenceClass = (value = "") => {
+    const normalised = value.toLowerCase();
+
+    if (normalised === "high") return "aisuggestions__statusGood";
+    if (normalised === "medium") return "aisuggestions__statusMedium";
+    if (normalised === "low") return "aisuggestions__statusBad";
+
+    return "aisuggestions__statusMedium";
   };
 
   useEffect(() => {
@@ -495,8 +516,10 @@ function Aisuggestions() {
 
     const eventForEstimate = {
       ...selectedEvent,
-      category_name: primaryCategory || categories[0] || selectedEvent.category_name,
-      categories: categories.length > 0 ? categories : selectedEvent.categories,
+      category_name:
+        primaryCategory || categories[0] || selectedEvent.category_name,
+      categories:
+        categories.length > 0 ? categories : selectedEvent.categories,
       interested_count: Number(selectedEvent.interested_count) || 0,
       best_location: location || "Manchester",
     };
@@ -526,10 +549,15 @@ function Aisuggestions() {
               const costInfo = estimateCost(event);
 
               return (
-                <div className="aisuggestions__card" key={event.id || `${event.title}-${index}`}>
+                <div
+                  className="aisuggestions__card"
+                  key={event.id || `${event.title}-${index}`}
+                >
                   <div className="aisuggestions__cardHeader">
                     <div className="aisuggestions__cardBody">
-                      <strong className="aisuggestions__cardTitle">{event.title}</strong>
+                      <strong className="aisuggestions__cardTitle">
+                        {event.title}
+                      </strong>
                       <p className="aisuggestions__cardText">
                         {event.fun_description}
                         <br />
@@ -559,7 +587,9 @@ function Aisuggestions() {
               );
             })
           ) : (
-            <p className="aisuggestions__cardText">No suggestions available yet.</p>
+            <p className="aisuggestions__cardText">
+              No suggestions available yet.
+            </p>
           )}
         </div>
       </div>
@@ -592,7 +622,8 @@ function Aisuggestions() {
                     handleCreateClick(
                       nicheSuggestion.title,
                       nicheSuggestion.description,
-                      nicheSuggestion.categories && nicheSuggestion.categories.length > 0
+                      nicheSuggestion.categories &&
+                        nicheSuggestion.categories.length > 0
                         ? nicheSuggestion.categories
                         : nicheSuggestion.category_name
                         ? [nicheSuggestion.category_name]
@@ -682,8 +713,16 @@ function Aisuggestions() {
                       {Number(generatedIdea.interested_count) || 0}
                     </p>
                     <p>
-                      <strong>Verdict:</strong> {generatedIdea.verdict} |{" "}
-                      <strong>Confidence:</strong> {generatedIdea.confidence}
+                      <strong>Verdict:</strong>{" "}
+                      <span className={getVerdictClass(generatedIdea.verdict)}>
+                        {generatedIdea.verdict}
+                      </span>{" "}
+                      | <strong>Confidence:</strong>{" "}
+                      <span
+                        className={getConfidenceClass(generatedIdea.confidence)}
+                      >
+                        {generatedIdea.confidence}
+                      </span>
                     </p>
 
                     <button
@@ -724,7 +763,9 @@ function Aisuggestions() {
               <>
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !editableTitle.trim() ? "aisuggestions__error" : ""
+                    showErrorHint && !editableTitle.trim()
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">Event Title</label>
@@ -751,7 +792,8 @@ function Aisuggestions() {
 
                 {selectedEventCostPreview && (
                   <p>
-                    <strong>Estimated Cost:</strong> {selectedEventCostPreview.label}
+                    <strong>Estimated Cost:</strong>{" "}
+                    {selectedEventCostPreview.label}
                   </p>
                 )}
 
@@ -841,7 +883,9 @@ function Aisuggestions() {
 
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !primaryCategory ? "aisuggestions__error" : ""
+                    showErrorHint && !primaryCategory
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">
@@ -849,7 +893,8 @@ function Aisuggestions() {
                   </label>
 
                   <p className="aisuggestions__helperText">
-                    Choose the main category that should be saved in the events table.
+                    Choose the main category that should be saved in the events
+                    table.
                   </p>
 
                   <select
@@ -868,7 +913,9 @@ function Aisuggestions() {
 
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !message.trim() ? "aisuggestions__error" : ""
+                    showErrorHint && !message.trim()
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">

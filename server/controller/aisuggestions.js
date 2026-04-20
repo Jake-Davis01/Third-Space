@@ -56,10 +56,35 @@ const getAiSuggestions = async (req, res) => {
   }
 };
 
+const getInterestedCount = async (req, res) => {
+  try {
+    const { category_name, location } = req.query;
+
+    if (!category_name || !category_name.trim()) {
+      return res.status(400).json({ error: "category_name is required" });
+    }
+
+    const interested_count =
+      await Event.getInterestedCountByCategoryAndLocation(
+        category_name.trim(),
+        location?.trim() || ""
+      );
+
+    res.status(200).json({
+      category_name: category_name.trim(),
+      location: location?.trim() || "",
+      interested_count,
+    });
+  } catch (err) {
+    console.error("Error fetching interested count:", err);
+    res.status(500).json({ error: "Failed to fetch interested count" });
+  }
+};
+
 const validateIdea = async (req, res) => {
   try {
+    console.log("USING CONTROLLER VALIDATE IDEA");
     console.log("REQ BODY:", req.body);
-    console.log("IDEA RECEIVED:", req.body.idea);
 
     const { idea } = req.body;
 
@@ -67,24 +92,67 @@ const validateIdea = async (req, res) => {
       return res.status(400).json({ error: "Idea is required" });
     }
 
-    const ideaInsights = await Event.getIdeaValidationInsights(idea.trim());
-    const result = await validateIdeaWithAi(ideaInsights);
+    const trimmedIdea = idea.trim();
 
-    if (result.rawText) {
+    const ideaInsights = await Event.getIdeaValidationInsights(trimmedIdea);
+    console.log("IDEA INSIGHTS:", JSON.stringify(ideaInsights, null, 2));
+
+    const result = await validateIdeaWithAi(ideaInsights);
+    console.log("AI VALIDATION RESULT:", result);
+
+    if (result && !result.rawText) {
+      return res.status(200).json(result);
+    }
+
+    const finalCategory =
+      ideaInsights?.finalCategory ||
+      ideaInsights?.matchedCategory ||
+      ideaInsights?.suggestedCategory ||
+      "";
+
+    const interestedCount = Number(
+      ideaInsights?.interestStats?.interested_users || 0
+    );
+
+    if (ideaInsights?.matchedCategory) {
       return res.status(200).json({
-        title: idea.trim(),
-        description: result.rawText,
-        verdict: "maybe",
-        confidence: "low",
-        category_name: ideaInsights?.matchedCategory || "",
-        categories: ideaInsights?.matchedCategory
-          ? [ideaInsights.matchedCategory]
-          : [],
-        interested_count: Number(ideaInsights?.interestStats?.interested_users || 0),
+        title: trimmedIdea,
+        description:
+          result?.rawText ||
+          `This idea appears relevant because it matches the "${finalCategory}" category in your database and currently has ${interestedCount} interested members.`,
+        verdict: interestedCount > 0 ? "good idea" : "maybe",
+        confidence: ideaInsights?.matchScore >= 95 ? "high" : "medium",
+        category_name: finalCategory,
+        categories: finalCategory ? [finalCategory] : [],
+        interested_count: interestedCount,
       });
     }
 
-    res.status(200).json(result);
+    if (ideaInsights?.suggestedCategory) {
+      return res.status(200).json({
+        title: trimmedIdea,
+        description:
+          result?.rawText ||
+          `This idea does not exactly match an existing interest in your database, but the closest relevant category is "${finalCategory}", which currently has ${interestedCount} interested members.`,
+        verdict: "maybe",
+        confidence: "low",
+        category_name: finalCategory,
+        categories: finalCategory ? [finalCategory] : [],
+        interested_count: interestedCount,
+      });
+    }
+
+    return res.status(200).json({
+      title: trimmedIdea,
+      description:
+        result?.rawText ||
+        "This idea has no strong match in the current database interests, so it is not recommended right now.",
+      verdict: "not recommended",
+      confidence: "low",
+      category_name: "",
+      categories: [],
+      interested_count: 0,
+    });
   } catch (err) {
     console.error("Error validating idea:", err);
     console.error("Validation error message:", err.message);
@@ -98,5 +166,6 @@ module.exports = {
   getPopularEvents,
   getSuggestionInsights,
   getAiSuggestions,
+  getInterestedCount,
   validateIdea,
 };
