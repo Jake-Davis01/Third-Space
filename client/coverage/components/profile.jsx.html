@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.63% </span>
+                <span class="strong">88.88% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>39/44</span>
+                <span class='fraction'>40/45</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">92.5% </span>
+                <span class="strong">92.68% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>37/40</span>
+                <span class='fraction'>38/41</span>
             </div>
         
             
@@ -217,7 +217,21 @@
 <a name='L152'></a><a href='#L152'>152</a>
 <a name='L153'></a><a href='#L153'>153</a>
 <a name='L154'></a><a href='#L154'>154</a>
-<a name='L155'></a><a href='#L155'>155</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -374,10 +388,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useState, useEffect } from "react"
 import '../css/profile.css'
 &nbsp;
+const INTERESTS = [
+    "Running", "Film", "Gaming", "Cooking",
+    "Board games", "Hiking", "Photography", "Reading",
+    "Yoga", "Cycling", "Music", "Travel",
+    "Chess", "Volunteering",
+]
+&nbsp;
 function Profile() {
     const [selected, setSelected] = useState([])
     const [location, setLocation] = useState("")
-    const [meetup, setMeetup] = useState("flexible")
+    const [meetup, setMeetup] = useState("either")
     const [saved, setSaved] = useState(false)
     const [loading, setLoading] = useState(true)
 &nbsp;
@@ -390,7 +411,7 @@ function Profile() {
                 const data = await response.json()
 &nbsp;
                 setLocation(data.officeLocation || <span class="branch-1 cbranch-no" title="branch not covered" >"")</span>
-                setMeetup(data.meetupPreference || <span class="branch-1 cbranch-no" title="branch not covered" >"flexible")</span>
+                setMeetup(data.meetupPreference || <span class="branch-1 cbranch-no" title="branch not covered" >"either")</span>
                 setSelected(data.userInterests || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>
             } catch (err) {
 <span class="cstat-no" title="statement not covered" >                console.error("Failed to load profile:", err.message)</span>
@@ -451,11 +472,11 @@ function Profile() {
                     onChange={(e) =&gt; setLocation(e.target.value)}
                 &gt;
                     &lt;option value=""&gt;Select office location&lt;/option&gt;
-                    &lt;option value="London"&gt;London&lt;/option&gt;
-                    &lt;option value="Manchester"&gt;Manchester&lt;/option&gt;
-                    &lt;option value="Birmingham"&gt;Birmingham&lt;/option&gt;
-                    &lt;option value="Edinburgh"&gt;Edinburgh&lt;/option&gt;
-                    &lt;option value="Fully remote"&gt;Fully remote&lt;/option&gt;
+                    &lt;option value="london"&gt;London&lt;/option&gt;
+                    &lt;option value="manchester"&gt;Manchester&lt;/option&gt;
+                    &lt;option value="birmingham"&gt;Birmingham&lt;/option&gt;
+                    &lt;option value="edinburgh"&gt;Edinburgh&lt;/option&gt;
+                    &lt;option value="remote"&gt;Fully remote&lt;/option&gt;
                 &lt;/select&gt;
             &lt;/div&gt;
 &nbsp;
@@ -477,18 +498,18 @@ function Profile() {
                                 &lt;input
                                     type="radio"
                                     name="meetup"
-                                    value="inperson"
-                                    checked={meetup === "inperson"}
-                                    onChange={() =&gt; setMeetup("inperson")}
+                                    value="in_person"
+                                    checked={meetup === "in_person"}
+                                    onChange={() =&gt; setMeetup("in_person")}
                                 /&gt; In person only
                             &lt;/label&gt;
                             &lt;label className="profile-radio"&gt;
                                 &lt;input
                                     type="radio"
                                     name="meetup"
-                                    value="flexible"
-                                    checked={meetup === "flexible"}
-<span class="fstat-no" title="function not covered" >                                    onChange={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMeetup("flexible")}</span>
+                                    value="either"
+                                    checked={meetup === "either"}
+<span class="fstat-no" title="function not covered" >                                    onChange={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etMeetup("either")}</span>
                                 /&gt; Either — I'm flexible
                             &lt;/label&gt;
                         &lt;/div&gt;
@@ -501,7 +522,7 @@ function Profile() {
                         &lt;/p&gt;
                         &lt;div className="profile-inner"&gt;
                             &lt;div className="profile-interests"&gt;
-                                {["Running", "Film", "Gaming", "Cooking", "Board games", "Hiking", "Photography", "Reading", "Yoga", "Cycling", "Music", "Travel", "Chess", "Volunteering"].map((interest) =&gt; (
+                                {INTERESTS.map((interest) =&gt; (
                                     &lt;button
                                         key={interest}
                                         className={`profile-tag ${selected.includes(interest) ? "profile-tag-selected" : ""}`}
@@ -532,7 +553,7 @@ export default Profile</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-17T15:16:18.003Z
+                at 2026-04-20T10:49:26.190Z
             </div>
         <script src="../prettify.js"></script>
         <script>

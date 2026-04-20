@@ -7,8 +7,8 @@ beforeEach(() => {
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
     json: async () => ({
-      officeLocation: 'London',
-      meetupPreference: 'flexible',
+      officeLocation: 'birmingham',
+      meetupPreference: 'either',
       userInterests: ['Running', 'Film', 'Gaming']
     })
   })
@@ -74,8 +74,8 @@ describe('Profile component', () => {
   test('can change location', async () => {
     render(<Profile />)
     await waitFor(() => screen.getByRole('combobox'))
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Manchester' } })
-    expect(screen.getByRole('combobox').value).toBe('Manchester')
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'manchester' } })
+    expect(screen.getByRole('combobox').value).toBe('manchester')
   })
 
   test('can change meetup preference to online only', async () => {
