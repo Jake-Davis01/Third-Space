@@ -4,6 +4,8 @@ const {
   createEvent,
   getPopularEvents,
   getSuggestionInsights,
+  getAiSuggestions,
+  validateIdea,
 } = require("../controller/aisuggestions");
 
 console.log("Loaded aisuggestions routes");
@@ -14,6 +16,8 @@ router.get("/events-test", (req, res) => {
 
 router.get("/events/popular", getPopularEvents);
 router.get("/ai/insights/suggestions", getSuggestionInsights);
+router.get("/ai/suggestions", getAiSuggestions);
+router.post("/ai/validate-idea", validateIdea);
 
 router.post(
   "/events",
