@@ -1,11 +1,12 @@
 // mock model BEFORE importing controller
-jest.mock("../models/User", () => ({
+jest.mock("../../../../server/models/User", () => ({
   create: jest.fn(),
   getOneByEmail: jest.fn()
 }));
 
-const User = require("../models/User");
+const User = require("../../../../server/models/User");
 const { register, login } = require("../../../../server/controller/user");
+
 
 describe("User controller", () => {
   let req, res;

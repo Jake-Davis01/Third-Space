@@ -1,14 +1,14 @@
 // mock model BEFORE importing controller
-jest.mock("../models/HomePageEvents", () => ({
+jest.mock("../../../../server/models/HomePageEvents", () => ({
   getNewEvent: jest.fn(),
   joinEvent: jest.fn()
 }));
 
-const HomePageEvents = require("../models/HomePageEvents");
+const HomePageEvents = require("../../../../server/models/HomePageEvents");
 const {
   newUserEvent,
   joinEvent
-} = require("../controllers/homePageEvents");
+} = require("../../../../server/controller/homeController");
 
 describe("HomePageEvents controller", () => {
   let req, res;

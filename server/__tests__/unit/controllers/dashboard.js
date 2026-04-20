@@ -1,5 +1,5 @@
 // mock the model BEFORE requiring controller
-jest.mock("../models/Dashboard", () => ({
+jest.mock("../../../../server/models/Dashboard", () => ({
   getInterests: jest.fn(),
   getAttendance: jest.fn(),
   getRatings: jest.fn(),
@@ -8,8 +8,8 @@ jest.mock("../models/Dashboard", () => ({
   getUserGrowth: jest.fn()
 }));
 
-const dashboardModel = require("../models/Dashboard");
-const { getDashboard } = require("../controllers/dashboard");
+const dashboardModel = require("../../../../server/models/Dashboard");
+const { getDashboard } = require("../../../../server/controller/dashboard");
 
 describe("getDashboard", () => {
   let req, res;
@@ -21,6 +21,8 @@ describe("getDashboard", () => {
       json: jest.fn(),
       status: jest.fn().mockReturnThis()
     };
+
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
