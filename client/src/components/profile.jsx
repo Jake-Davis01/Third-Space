@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react"
 import '../css/profile.css'
 
+const INTERESTS = [
+    "Running", "Film", "Gaming", "Cooking",
+    "Board games", "Hiking", "Photography", "Reading",
+    "Yoga", "Cycling", "Music", "Travel",
+    "Chess", "Volunteering",
+]
+
 function Profile() {
     const [selected, setSelected] = useState([])
     const [location, setLocation] = useState("")
-    const [meetup, setMeetup] = useState("flexible")
+    const [meetup, setMeetup] = useState("either")
     const [saved, setSaved] = useState(false)
     const [loading, setLoading] = useState(true)
 
@@ -17,7 +24,7 @@ function Profile() {
                 const data = await response.json()
 
                 setLocation(data.officeLocation || "")
-                setMeetup(data.meetupPreference || "flexible")
+                setMeetup(data.meetupPreference || "either")
                 setSelected(data.userInterests || [])
             } catch (err) {
                 console.error("Failed to load profile:", err.message)
@@ -78,11 +85,11 @@ function Profile() {
                     onChange={(e) => setLocation(e.target.value)}
                 >
                     <option value="">Select office location</option>
-                    <option value="London">London</option>
-                    <option value="Manchester">Manchester</option>
-                    <option value="Birmingham">Birmingham</option>
-                    <option value="Edinburgh">Edinburgh</option>
-                    <option value="Fully remote">Fully remote</option>
+                    <option value="london">London</option>
+                    <option value="manchester">Manchester</option>
+                    <option value="birmingham">Birmingham</option>
+                    <option value="edinburgh">Edinburgh</option>
+                    <option value="remote">Fully remote</option>
                 </select>
             </div>
 
@@ -104,18 +111,18 @@ function Profile() {
                                 <input
                                     type="radio"
                                     name="meetup"
-                                    value="inperson"
-                                    checked={meetup === "inperson"}
-                                    onChange={() => setMeetup("inperson")}
+                                    value="in_person"
+                                    checked={meetup === "in_person"}
+                                    onChange={() => setMeetup("in_person")}
                                 /> In person only
                             </label>
                             <label className="profile-radio">
                                 <input
                                     type="radio"
                                     name="meetup"
-                                    value="flexible"
-                                    checked={meetup === "flexible"}
-                                    onChange={() => setMeetup("flexible")}
+                                    value="either"
+                                    checked={meetup === "either"}
+                                    onChange={() => setMeetup("either")}
                                 /> Either — I'm flexible
                             </label>
                         </div>
@@ -128,7 +135,7 @@ function Profile() {
                         </p>
                         <div className="profile-inner">
                             <div className="profile-interests">
-                                {["Running", "Film", "Gaming", "Cooking", "Board games", "Hiking", "Photography", "Reading", "Yoga", "Cycling", "Music", "Travel", "Chess", "Volunteering"].map((interest) => (
+                                {INTERESTS.map((interest) => (
                                     <button
                                         key={interest}
                                         className={`profile-tag ${selected.includes(interest) ? "profile-tag-selected" : ""}`}
