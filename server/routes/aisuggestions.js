@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { createEvent, getPopularEvents } = require("../controller/aisuggestions");
+const {
+  createEvent,
+  getPopularEvents,
+  getSuggestionInsights,
+} = require("../controller/aisuggestions");
 
 console.log("Loaded aisuggestions routes");
 
@@ -9,6 +13,7 @@ router.get("/events-test", (req, res) => {
 });
 
 router.get("/events/popular", getPopularEvents);
+router.get("/ai/insights/suggestions", getSuggestionInsights);
 
 router.post(
   "/events",

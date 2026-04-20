@@ -4,6 +4,7 @@ import "../css/Aisuggestions.css";
 function Aisuggestions() {
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editableTitle, setEditableTitle] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
@@ -71,6 +72,7 @@ function Aisuggestions() {
 
   const resetModalState = () => {
     setSelectedEvent(null);
+    setEditableTitle("");
     setDate("");
     setLocation("");
     setCategories([]);
@@ -96,6 +98,7 @@ function Aisuggestions() {
     interestedCount = 0
   ) => {
     setSelectedEvent({ title, description, interested_count: interestedCount });
+    setEditableTitle(title);
     setCategories(defaultCategories);
     setPrimaryCategory(defaultCategories[0] || "");
     setShowModal(true);
@@ -133,7 +136,7 @@ function Aisuggestions() {
   const handleSubmit = async () => {
     console.log("SUBMIT CLICKED");
 
-    if (!date || !location || categories.length === 0 || !primaryCategory || !message.trim()) {
+    if (!editableTitle.trim() || !date || !location || categories.length === 0 || !primaryCategory || !message.trim()) {
       setShowErrorHint(true);
       setTimeout(() => setShowErrorHint(false), 1200);
       return;
@@ -155,7 +158,7 @@ function Aisuggestions() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: selectedEvent.title,
+          title: editableTitle.trim(),
           description: selectedEvent.description,
           event_date: date,
           location,
@@ -188,6 +191,7 @@ function Aisuggestions() {
   };
 
   const canSubmit =
+    editableTitle.trim() &&
     date &&
     location &&
     categories.length > 0 &&
@@ -235,6 +239,7 @@ function Aisuggestions() {
     resetGeneratorState();
 
     setSelectedEvent(ideaToUse);
+    setEditableTitle(ideaToUse?.title || "");
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
     setShowModal(true);
@@ -455,7 +460,26 @@ function Aisuggestions() {
 
             {!showCancelConfirm ? (
               <>
-                <h2>{selectedEvent?.title}</h2>
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !editableTitle.trim() ? "aisuggestions__error" : ""
+                  }`}
+                >
+                  <label className="aisuggestions__label">Event Title</label>
+
+                  <p className="aisuggestions__helperText">
+                    You can edit the event heading before saving
+                  </p>
+
+                  <input
+                    type="text"
+                    value={editableTitle}
+                    onChange={(e) => setEditableTitle(e.target.value)}
+                    className="aisuggestions__input"
+                    placeholder="Enter event title"
+                  />
+                </div>
+
                 <p>{selectedEvent?.description}</p>
 
                 <p>

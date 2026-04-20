@@ -1,4 +1,5 @@
-const Event = require("../models/Event");
+const Event = require("../models/AiSuggestions");
+const AiSuggestions = require("../models/AiSuggestions");
 
 const createEvent = async (req, res) => {
   try {
@@ -6,7 +7,7 @@ const createEvent = async (req, res) => {
 
     const event = new Event({
       ...req.body,
-      user_email: req.body.user_email, // 👈 ensure it's passed
+      user_email: req.body.user_email,
     });
 
     const savedEvent = await event.save();
@@ -29,4 +30,18 @@ const getPopularEvents = async (req, res) => {
   }
 };
 
-module.exports = { createEvent, getPopularEvents };
+const getSuggestionInsights = async (req, res) => {
+  try {
+    const insights = await AiSuggestions.getSuggestionInsights();
+    res.status(200).json(insights);
+  } catch (err) {
+    console.error("Error fetching suggestion insights:", err);
+    res.status(500).json({ error: "Failed to fetch insights" });
+  }
+};
+
+module.exports = {
+  createEvent,
+  getPopularEvents,
+  getSuggestionInsights,
+};
