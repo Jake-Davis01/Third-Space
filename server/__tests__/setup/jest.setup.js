@@ -13,6 +13,9 @@ afterAll(async () => {
   // no-op
 });
 
+// TEMP: For intergration tests
+
+
 // beforeAll(async () => {
 //   const resetSql = fs.readFileSync(
 //     path.join(__dirname, "../intergration/reset.sql"),
