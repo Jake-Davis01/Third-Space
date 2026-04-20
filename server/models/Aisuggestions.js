@@ -69,46 +69,96 @@ class Event {
 
   static async getPopularEvents() {
     const result = await db.query(`
-      SELECT 
-        e.id,
-        e.title,
-        e.description,
-        e.category_name,
-        COUNT(er.id) AS interested_count
-      FROM events e
-      LEFT JOIN event_registrations er
-        ON e.id = er.event_id
-      GROUP BY e.id, e.title, e.description, e.category_name
-      ORDER BY COUNT(er.id) DESC
-      LIMIT 4;
+      WITH ranked_interests AS (
+        SELECT
+          i.name AS category_name,
+          COUNT(DISTINCT ui.user_email) AS interested_users
+        FROM interests i
+        LEFT JOIN user_interests ui
+          ON LOWER(TRIM(i.name)) = LOWER(TRIM(ui.interest_name))
+        GROUP BY i.name
+        ORDER BY interested_users DESC, i.name ASC
+        LIMIT 4
+      ),
+      category_locations AS (
+        SELECT
+          e.category_name,
+          e.location,
+          COUNT(DISTINCT e.id) AS total_events,
+          ROW_NUMBER() OVER (
+            PARTITION BY e.category_name
+            ORDER BY COUNT(DISTINCT e.id) DESC, e.location ASC
+          ) AS rn
+        FROM events e
+        WHERE e.category_name IS NOT NULL
+          AND e.location IS NOT NULL
+        GROUP BY e.category_name, e.location
+      ),
+      global_location AS (
+        SELECT
+          location
+        FROM events
+        WHERE location IS NOT NULL
+        GROUP BY location
+        ORDER BY COUNT(DISTINCT id) DESC, location ASC
+        LIMIT 1
+      )
+      SELECT
+        ROW_NUMBER() OVER (
+          ORDER BY ri.interested_users DESC, ri.category_name ASC
+        ) AS id,
+        ri.category_name,
+        ri.category_name || ' Social' AS title,
+        'A great choice for bringing together people who already share an interest in ' || ri.category_name || '.' AS description,
+        ri.interested_users::text AS interested_count,
+        COALESCE(cl.location, gl.location, 'Fully remote') AS best_location,
+        ARRAY[ri.category_name] AS categories
+      FROM ranked_interests ri
+      LEFT JOIN category_locations cl
+        ON cl.category_name = ri.category_name
+       AND cl.rn = 1
+      CROSS JOIN global_location gl
+      ORDER BY ri.interested_users DESC, ri.category_name ASC;
     `);
 
     return result.rows;
   }
 
   static async getSuggestionInsights() {
-    const categoryQuery = `
+    const topInterestsQuery = `
       SELECT
-        e.category_name,
-        COUNT(DISTINCT e.id) AS total_events,
-        COUNT(er.id) AS total_registrations,
-        COUNT(CASE WHEN er.status = 'attended' THEN 1 END) AS total_attended,
-        COUNT(CASE WHEN er.status = 'cancelled' THEN 1 END) AS total_cancelled
-      FROM events e
-      LEFT JOIN event_registrations er ON e.id = er.event_id
-      WHERE e.category_name IS NOT NULL
-      GROUP BY e.category_name
-      ORDER BY total_registrations DESC, total_attended DESC;
+        i.name AS category_name,
+        COUNT(DISTINCT ui.user_email) AS interested_users
+      FROM interests i
+      LEFT JOIN user_interests ui
+        ON LOWER(TRIM(i.name)) = LOWER(TRIM(ui.interest_name))
+      GROUP BY i.name
+      ORDER BY interested_users DESC, i.name ASC;
     `;
 
     const locationQuery = `
       SELECT
         location,
-        COUNT(*) AS total_events
+        COUNT(DISTINCT id) AS total_events
       FROM events
       WHERE location IS NOT NULL
       GROUP BY location
-      ORDER BY total_events DESC;
+      ORDER BY total_events DESC, location ASC;
+    `;
+
+    const categoryLocationQuery = `
+      SELECT
+        e.category_name,
+        e.location,
+        COUNT(DISTINCT e.id) AS total_events,
+        ROW_NUMBER() OVER (
+          PARTITION BY e.category_name
+          ORDER BY COUNT(DISTINCT e.id) DESC, e.location ASC
+        ) AS rn
+      FROM events e
+      WHERE e.category_name IS NOT NULL
+        AND e.location IS NOT NULL
+      GROUP BY e.category_name, e.location;
     `;
 
     const underusedQuery = `
@@ -123,19 +173,35 @@ class Event {
         ON LOWER(TRIM(i.name)) = LOWER(TRIM(e.category_name))
       GROUP BY i.name
       HAVING COUNT(DISTINCT e.id) < 2
-      ORDER BY interested_users DESC, total_events ASC;
+      ORDER BY interested_users DESC, total_events ASC, i.name ASC;
     `;
 
-    const [categories, locations, underused] = await Promise.all([
-      db.query(categoryQuery),
+    const [
+      topInterestsResult,
+      topLocationsResult,
+      categoryLocationsResult,
+      underusedResult,
+    ] = await Promise.all([
+      db.query(topInterestsQuery),
       db.query(locationQuery),
+      db.query(categoryLocationQuery),
       db.query(underusedQuery),
     ]);
 
+    const categoryBestLocations = categoryLocationsResult.rows
+      .filter((row) => Number(row.rn) === 1)
+      .map((row) => ({
+        category_name: row.category_name,
+        best_location: row.location,
+        total_events: row.total_events,
+      }));
+
     return {
-      topCategories: categories.rows,
-      topLocations: locations.rows,
-      underusedCategories: underused.rows,
+      topInterests: topInterestsResult.rows,
+      topThreeInterests: topInterestsResult.rows.slice(0, 3),
+      topLocations: topLocationsResult.rows,
+      categoryBestLocations,
+      underusedCategories: underusedResult.rows,
     };
   }
 
@@ -160,13 +226,14 @@ class Event {
         SELECT
           e.category_name,
           COUNT(DISTINCT e.id) AS total_events,
-          COUNT(er.id) AS total_registrations,
+          COUNT(DISTINCT er.user_email) AS total_registered_users,
           COUNT(CASE WHEN er.status = 'attended' THEN 1 END) AS total_attended,
           COUNT(CASE WHEN er.status = 'cancelled' THEN 1 END) AS total_cancelled,
           COUNT(CASE WHEN er.status = 'registered' THEN 1 END) AS total_registered,
           COUNT(CASE WHEN er.status = 'unresponsive' THEN 1 END) AS total_unresponsive
         FROM events e
-        LEFT JOIN event_registrations er ON e.id = er.event_id
+        LEFT JOIN event_registrations er
+          ON e.id = er.event_id
         WHERE LOWER(TRIM(e.category_name)) = LOWER(TRIM($1))
         GROUP BY e.category_name;
       `;
@@ -183,13 +250,14 @@ class Event {
         SELECT
           e.location,
           COUNT(DISTINCT e.id) AS total_events,
-          COUNT(er.id) AS total_registrations,
+          COUNT(DISTINCT er.user_email) AS total_registered_users,
           COUNT(CASE WHEN er.status = 'attended' THEN 1 END) AS total_attended
         FROM events e
-        LEFT JOIN event_registrations er ON e.id = er.event_id
+        LEFT JOIN event_registrations er
+          ON e.id = er.event_id
         WHERE LOWER(TRIM(e.category_name)) = LOWER(TRIM($1))
         GROUP BY e.location
-        ORDER BY total_attended DESC, total_registrations DESC, total_events DESC;
+        ORDER BY total_attended DESC, total_registered_users DESC, total_events DESC, e.location ASC;
       `;
 
       const [categoryStatsResult, interestStatsResult, locationStatsResult] =
@@ -200,21 +268,22 @@ class Event {
         ]);
 
       categoryStats = categoryStatsResult.rows[0] || null;
-      interestStats = interestStatsResult.rows[0] || { category_name: matchedCategory, interested_users: "0" };
+      interestStats = interestStatsResult.rows[0] || {
+        category_name: matchedCategory,
+        interested_users: "0",
+      };
       locationStats = locationStatsResult.rows;
     }
 
-    const topCategoriesResult = await db.query(`
+    const topInterestsResult = await db.query(`
       SELECT
-        e.category_name,
-        COUNT(DISTINCT e.id) AS total_events,
-        COUNT(er.id) AS total_registrations,
-        COUNT(CASE WHEN er.status = 'attended' THEN 1 END) AS total_attended
-      FROM events e
-      LEFT JOIN event_registrations er ON e.id = er.event_id
-      WHERE e.category_name IS NOT NULL
-      GROUP BY e.category_name
-      ORDER BY total_registrations DESC, total_attended DESC
+        i.name AS category_name,
+        COUNT(DISTINCT ui.user_email) AS interested_users
+      FROM interests i
+      LEFT JOIN user_interests ui
+        ON LOWER(TRIM(i.name)) = LOWER(TRIM(ui.interest_name))
+      GROUP BY i.name
+      ORDER BY interested_users DESC, i.name ASC
       LIMIT 5;
     `);
 
@@ -224,7 +293,7 @@ class Event {
       categoryStats,
       interestStats,
       locationStats,
-      topCategories: topCategoriesResult.rows,
+      topInterests: topInterestsResult.rows,
     };
   }
 }
