@@ -1,72 +1,78 @@
-import '../css/events.css'
-
+import "../css/events.css";
 import { useState, useEffect } from "react";
 
-const fakeExampleObj = [
-    {
-        userID: 1,
-        eventName: "Board Games",
-        date: "21/03/2026",
-        time: "6pm",
-        location: "London Office",
-    },
-    {
-        userID: 1,
-        eventName: "Lunch Quiz",
-        date: "30/04/2026",
-        time: "12pm",
-        location: "Online",
-    },
-    {
-        userID: 1,
-        eventName: "Lunch Quiz 45",
-        date: "30/04/2026",
-        time: "12pm",
-        location: "Online",
-    },
-];
-
-// Replace this with a real database/API call later e.g:
-async function fetchEvents() {
-    // const response = await fetch("/api/events");
-    // return await response.json();
-    return fakeExampleObj;
-}
-
-function Events() {
+function Events({ userEventEmail }) {
     const [events, setEvents] = useState([]);
 
-    //on page load it gets the events data
+    async function fetchEvents() {
+        const res = await fetch(
+            `http://localhost:3000/api/eventPage/userEvents/${userEventEmail}`,
+        );
+        const data = await res.json();
+        return data;
+    }
+
+    async function leaveEvent(eventID) {
+        try {
+            const res = await fetch(
+                "http://localhost:3000/api/eventPage/userEvents/",
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        eventID: eventID,
+                        email: userEventEmail,
+                    }),
+                },
+            );
+
+            const updated = await res.json();
+            console.log("Updated:", updated);
+
+            // remove event from UI after successful cancel
+            setEvents((prev) => prev.filter((event) => event.id !== eventID));
+        } catch (err) {
+            console.error("Error leaving event:", err);
+        }
+    }
+
     useEffect(() => {
         fetchEvents().then((data) => setEvents(data));
-    }, []);
-
-    //will need to be changed to have a patch request that updates the groups the employee is a part of
-    const handleLeaveGroup = (index) => {
-        setEvents(events.filter((_, i) => i !== index));
-    };
+    }, [userEventEmail]);
 
     return (
         <section>
             <div className="welcome-user container">
                 <h1>Your Events</h1>
             </div>
-            {events.map((event, index) => (
-                <div key={index} className="events-container">
-                    <h1>{event.eventName}</h1>
-                    <div className="events-footer">
-                        <p className="date">
-                            Date: {event.date} at {event.time} -- Location: {event.location}
-                        </p>
-                        <button
-                            className="join-button"
-                            onClick={() => handleLeaveGroup(index)}
-                        >
-                            Leave Group
-                        </button>
-                    </div>
+
+            {events.length === 0 ? (
+                <div className="events-container">
+                    <h1>No upcoming events</h1>
                 </div>
-            ))}
+            ) : (
+                events.map((event) => (
+                    <div key={event.id} className="events-container">
+                        <h1>{event.title}</h1>
+
+                        <div className="events-footer">
+                            <p className="date">
+                                Date: {event.event_date} -- Location:{" "}
+                                {event.location}
+                            </p>
+
+                            <button
+                                className="join-button"
+                                onClick={() => leaveEvent(event.id)}
+                            >
+                                Leave Group
+                            </button>
+                        </div>
+                    </div>
+                ))
+            )}
         </section>
     );
 }

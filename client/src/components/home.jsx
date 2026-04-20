@@ -61,10 +61,7 @@ function Home({ name, userEventEmail }) {
             if (data !== "No New Events!") {
                 setEventName(data.title);
                 setEventLocation(data.location);
-                const formattedDate = new Date(data.event_date).toLocaleDateString("en-GB", {
-                    timeZone: "UTC",
-                });
-                setEventDate(formattedDate);
+                setEventDate(data.event_date);
                 setEventDescription(data.description);
                 setRegistrationID(data.registration_id);
             } else {
@@ -81,10 +78,7 @@ function Home({ name, userEventEmail }) {
             if (data !== "No Upcoming Events!") {
                 setUpcomingEventName(data.title);
                 setUpcomingEventLocation(data.location);
-                const formattedDate = new Date(data.event_date).toLocaleDateString("en-GB", {
-                    timeZone: "UTC",
-                });
-                setUpcomingEventDate(formattedDate);
+                setUpcomingEventDate(data.event_date);
                 setUpcomingEventDescription(data.description);
             } else {
                 setUpcomingEventName(data);

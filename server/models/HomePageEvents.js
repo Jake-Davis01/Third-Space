@@ -50,7 +50,7 @@ class HomePageEvents {
         er.*, 
         e.title, 
         e.description, 
-        e.event_date, 
+        TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date, 
          e.location
         FROM event_registrations er
         JOIN events e ON er.event_id = e.id
