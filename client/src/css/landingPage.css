@@ -9,14 +9,14 @@
     flex-direction: column;
     justify-content: center;
     padding: 4rem 3.5rem;
-    background-color: #F8F9FA;
+    background-color: #ffffff;
     gap: 1.5rem;
 }
 
 .login-side h1 {
     font-size: 2.2rem;
     font-weight: 700;
-    color: #1A2F4A;
+    color: #0B0033;
 }
 
 .login-info {
@@ -28,25 +28,26 @@
 .landingPage-input {
     width: 100%;
     padding: 0.6rem 1rem;
-    border-radius: 8px;
-    border: 1.5px solid #D0D8E4;
-    background-color: #FFFFFF;
+    border-radius: 14px;
+    border: 1.5px solid #e9d5ff;
+    background-color: #ffffff;
     font-size: 0.9rem;
     box-sizing: border-box;
-    color: #1A2F4A;
+    color: #0B0033;
     transition: border-color 0.15s;
+    margin-bottom: 0.5rem;
 }
 
 .landingPage-input:focus {
     outline: none;
-    border-color: #4A7FB5;
+    border-color: #9333ea;
 }
 
 .loginBtn {
     font-size: 1rem;
     font-weight: 600;
-    color: white;
-    background-color: #4A7FB5;
+    color: #ffffff;
+    background-color: #0B0033;
     border-radius: 8px;
     width: 100%;
     padding: 0.7rem 0;
@@ -56,26 +57,38 @@
 }
 
 .loginBtn:hover {
-    background-color: #1A2F4A;
+    background-color: #9333ea;
 }
 
 .signupText {
     font-size: 0.9rem;
-    color: #7F8C9A;
+    color: #0B0033;
     text-align: center;
 }
 
 .signUpBtn {
     text-decoration: underline;
-    color: #4A7FB5;
+    color: #9333ea;
     font-weight: 600;
 }
 
 .signUpBtn:hover {
     cursor: pointer;
+    color: #0B0033;
 }
 
 .picture-side {
-    background-color: #4A7FB5;
-    width: 50%;
+    background-color: #0B0033;
+    width: 57%;
+}
+
+.landingLogo {
+    height: 250px; 
+}
+.picture-side {
+    background-color: #0B0033;
+    width: 57%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
