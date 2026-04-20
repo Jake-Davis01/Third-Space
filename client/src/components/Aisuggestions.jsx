@@ -18,7 +18,6 @@ function Aisuggestions() {
   const [popularEvents, setPopularEvents] = useState([]);
   const [isLoadingPopular, setIsLoadingPopular] = useState(true);
 
-  // generator states
   const [generatorInput, setGeneratorInput] = useState("");
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const [generatedIdea, setGeneratedIdea] = useState(null);
@@ -45,11 +44,11 @@ function Aisuggestions() {
   ];
 
   useEffect(() => {
-    const fetchPopularEvents = async () => {
+    const fetchAiSuggestions = async () => {
       try {
         setIsLoadingPopular(true);
 
-        const response = await fetch("http://localhost:3000/api/events/popular");
+        const response = await fetch("http://localhost:3000/api/ai/suggestions");
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -57,17 +56,23 @@ function Aisuggestions() {
         }
 
         const data = await response.json();
-        console.log("POPULAR EVENTS FROM API:", data);
-        setPopularEvents(Array.isArray(data) ? data : []);
+        console.log("AI SUGGESTIONS FROM API:", data);
+
+        const combinedSuggestions = [
+          ...(Array.isArray(data.topSuggestions) ? data.topSuggestions : []),
+          ...(data.nicheSuggestion ? [data.nicheSuggestion] : []),
+        ];
+
+        setPopularEvents(combinedSuggestions);
       } catch (err) {
-        console.error("Error fetching popular events:", err);
+        console.error("Error fetching AI suggestions:", err);
         setPopularEvents([]);
       } finally {
         setIsLoadingPopular(false);
       }
     };
 
-    fetchPopularEvents();
+    fetchAiSuggestions();
   }, []);
 
   const resetModalState = () => {
@@ -199,37 +204,89 @@ function Aisuggestions() {
     message.trim() &&
     !isSubmitting;
 
-  const handleGenerateClick = () => {
+  const handleGenerateClick = async () => {
     if (!generatorInput.trim()) return;
 
-    setShowGeneratorModal(true);
-    setIsGenerating(true);
-    setGeneratedIdea(null);
+    try {
+      setShowGeneratorModal(true);
+      setIsGenerating(true);
+      setGeneratedIdea(null);
 
-    setTimeout(() => {
-      setGeneratedIdea({
-        title: "AI Suggested Event",
-        description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
-        categories: [],
+      const response = await fetch("http://localhost:3000/api/ai/validate-idea", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idea: generatorInput.trim(),
+        }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Request failed: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("AI IDEA RESPONSE:", data);
+
+      setGeneratedIdea(data);
+    } catch (err) {
+      console.error("Error validating idea:", err);
+      setGeneratedIdea({
+        title: generatorInput,
+        description: `We could not assess this idea right now. ${err.message}`,
+        verdict: "maybe",
+        confidence: "low",
+        category_name: "",
+        categories: [],
+        interested_count: 0,
+      });
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
 
-  const handleGenerateIdea = () => {
+  const handleGenerateIdea = async () => {
     if (!generatorInput.trim()) return;
 
-    setIsGenerating(true);
-    setGeneratedIdea(null);
+    try {
+      setIsGenerating(true);
+      setGeneratedIdea(null);
 
-    setTimeout(() => {
-      setGeneratedIdea({
-        title: "AI Suggested Event",
-        description: `Based on your idea: "${generatorInput}", this event could bring people together in a fun, engaging and social way.`,
-        categories: [],
+      const response = await fetch("http://localhost:3000/api/ai/validate-idea", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idea: generatorInput.trim(),
+        }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Request failed: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("AI IDEA RESPONSE:", data);
+
+      setGeneratedIdea(data);
+    } catch (err) {
+      console.error("Error validating idea:", err);
+      setGeneratedIdea({
+        title: generatorInput,
+        description: `We could not assess this idea right now. ${err.message}`,
+        verdict: "maybe",
+        confidence: "low",
+        category_name: "",
+        categories: [],
+        interested_count: 0,
+      });
+    } finally {
       setIsGenerating(false);
-    }, 1500);
+    }
   };
 
   const useGeneratedIdea = () => {
@@ -238,8 +295,12 @@ function Aisuggestions() {
     setShowGeneratorModal(false);
     resetGeneratorState();
 
-    setSelectedEvent(ideaToUse);
-    setEditableTitle(ideaToUse?.title || "");
+    setSelectedEvent({
+      title: ideaToUse?.title || generatorInput,
+      description: ideaToUse?.description || "",
+      interested_count: Number(ideaToUse?.interested_count) || 0,
+    });
+    setEditableTitle(ideaToUse?.title || generatorInput);
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
     setShowModal(true);
@@ -280,19 +341,21 @@ function Aisuggestions() {
           {isLoadingPopular ? (
             <p className="aisuggestions__cardText">Loading suggestions...</p>
           ) : topSuggestions.length > 0 ? (
-            topSuggestions.map((event) => (
-              <div className="aisuggestions__card" key={event.id}>
+            topSuggestions.map((event, index) => (
+              <div className="aisuggestions__card" key={`${event.title}-${index}`}>
                 <div className="aisuggestions__cardHeader">
                   <div className="aisuggestions__cardBody">
                     <strong className="aisuggestions__cardTitle">{event.title}</strong>
-                    <p className="aisuggestions__cardText">{event.description}</p>
+                    <p className="aisuggestions__cardText">
+                      {event.description} Cost: {event.estimated_cost}. Best location: {event.best_location}.
+                    </p>
                   </div>
                   <button
                     className="aisuggestions__cardButton"
                     onClick={() =>
                       handleCreateClick(
                         event.title,
-                        event.description,
+                        `${event.description} Cost: ${event.estimated_cost}. Best location: ${event.best_location}.`,
                         event.categories && event.categories.length > 0
                           ? event.categories
                           : event.category_name
@@ -329,7 +392,7 @@ function Aisuggestions() {
                     {nicheSuggestion.title}
                   </strong>
                   <p className="aisuggestions__cardText">
-                    {nicheSuggestion.description}
+                    {nicheSuggestion.description} Cost: {nicheSuggestion.estimated_cost}. Best location: {nicheSuggestion.best_location}.
                   </p>
                 </div>
                 <button
@@ -337,7 +400,7 @@ function Aisuggestions() {
                   onClick={() =>
                     handleCreateClick(
                       nicheSuggestion.title,
-                      nicheSuggestion.description,
+                      `${nicheSuggestion.description} Cost: ${nicheSuggestion.estimated_cost}. Best location: ${nicheSuggestion.best_location}.`,
                       nicheSuggestion.categories && nicheSuggestion.categories.length > 0
                         ? nicheSuggestion.categories
                         : nicheSuggestion.category_name
@@ -423,6 +486,14 @@ function Aisuggestions() {
                   <div className="aisuggestions__generatedBox">
                     <strong>{generatedIdea.title}</strong>
                     <p>{generatedIdea.description}</p>
+                    <p>
+                      <strong>Interested Members:</strong>{" "}
+                      {Number(generatedIdea.interested_count) || 0}
+                    </p>
+                    <p>
+                      <strong>Verdict:</strong> {generatedIdea.verdict} |{" "}
+                      <strong>Confidence:</strong> {generatedIdea.confidence}
+                    </p>
 
                     <button
                       className="aisuggestions__generateButton"
