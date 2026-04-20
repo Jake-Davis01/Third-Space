@@ -1,25 +1,21 @@
-// mock model BEFORE importing controller
 jest.mock("../../../../server/models/User", () => ({
   create: jest.fn(),
-  getOneByEmail: jest.fn()
+  getOneByEmail: jest.fn(),
+  update: jest.fn(),
 }));
 
 const User = require("../../../../server/models/User");
-const { register, login } = require("../../../../server/controller/user");
+const { register, login, updateProfile, getProfile } = require("../../../../server/controller/user");
 
-
-describe("User controller", () => {
+describe("User Controller", () => {
   let req, res;
 
   beforeEach(() => {
-    req = {
-      body: {}
-    };
-
+    req = { params: {}, body: {} };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
-      send: jest.fn()
+      send: jest.fn(),
     };
   });
 
@@ -27,18 +23,12 @@ describe("User controller", () => {
     jest.clearAllMocks();
   });
 
-  // =========================
-  // register
-  // =========================
+  // ─── register ──────────────────────────────────────────────────────────────
+
   describe("register", () => {
-    test("should create a user and return 201", async () => {
-      req.body = {
-        email: "test@test.com",
-        password: "1234"
-      };
-
-      const mockResult = { id: 1, email: "test@test.com" };
-
+    test("returns 201 with the created user", async () => {
+      req.body = { first_name: "Alice", last_name: "Smith", email: "alice@test.com", password: "hash123" };
+      const mockResult = { id: 1, email: "alice@test.com" };
       User.create.mockResolvedValue(mockResult);
 
       await register(req, res);
@@ -48,62 +38,73 @@ describe("User controller", () => {
       expect(res.send).toHaveBeenCalledWith(mockResult);
     });
 
-    test("should return 400 if creation fails", async () => {
-      req.body = { email: "bad@test.com" };
-
+    test("returns 400 on error", async () => {
       User.create.mockRejectedValue(new Error("Validation error"));
-
       await register(req, res);
-
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Validation error"
-      });
+      expect(res.json).toHaveBeenCalledWith({ error: "Validation error" });
     });
   });
 
-  // =========================
-  // login
-  // =========================
+  // ─── login ─────────────────────────────────────────────────────────────────
+
   describe("login", () => {
-    test("should return user if login successful", async () => {
-      req.body = { email: "test@test.com" };
-
-      const mockUser = { id: 1, email: "test@test.com" };
-
+    test("returns 200 with the user on success", async () => {
+      req.body = { email: "alice@test.com" };
+      const mockUser = { id: 1, email: "alice@test.com" };
       User.getOneByEmail.mockResolvedValue(mockUser);
 
       await login(req, res);
 
-      expect(User.getOneByEmail).toHaveBeenCalledWith("test@test.com");
+      expect(User.getOneByEmail).toHaveBeenCalledWith("alice@test.com");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockUser);
     });
 
-    test("should return 401 if user not found", async () => {
-      req.body = { email: "missing@test.com" };
-
+    test("returns 401 when no user is found", async () => {
+      req.body = { email: "ghost@test.com" };
       User.getOneByEmail.mockResolvedValue(null);
 
       await login(req, res);
 
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "No user with this email"
-      });
+      expect(res.json).toHaveBeenCalledWith({ error: "No user with this email" });
     });
 
-    test("should return 401 if database throws error", async () => {
-      req.body = { email: "error@test.com" };
+  });
 
-      User.getOneByEmail.mockRejectedValue(new Error("DB error"));
+  // ─── updateProfile ─────────────────────────────────────────────────────────
 
-      await login(req, res);
+  describe("updateProfile", () => {
+    test("returns 200 with the updated user", async () => {
+      req.params.email = "alice@test.com";
+      req.body = { office_location: "Edinburgh", meetup_preference: "hybrid", user_interests: ["Yoga"] };
+      const mockResult = { id: 1, email: "alice@test.com", office_location: "Edinburgh" };
+      User.update.mockResolvedValue(mockResult);
 
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "DB error"
-      });
+      await updateProfile(req, res);
+
+      expect(User.update).toHaveBeenCalledWith("alice@test.com", req.body);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockResult);
     });
+
+  });
+
+  // ─── getProfile ────────────────────────────────────────────────────────────
+
+  describe("getProfile", () => {
+    test("returns 200 with the user profile", async () => {
+      req.params.email = "alice@test.com";
+      const mockUser = { id: 1, email: "alice@test.com", userInterests: ["Running"] };
+      User.getOneByEmail.mockResolvedValue(mockUser);
+
+      await getProfile(req, res);
+
+      expect(User.getOneByEmail).toHaveBeenCalledWith("alice@test.com");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockUser);
+    });
+
   });
 });
