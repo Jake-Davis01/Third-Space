@@ -175,7 +175,7 @@ function Home({ name, userEventEmail }) {
 
             <div className="container">
                 <h2>Feedback</h2>
-                <h1>{pastEventTitle}</h1>
+                <h1 className="pastEventHeading">{pastEventTitle}</h1>
 
                 {pastEventTitle !== "No Past Events To Review!" ? (
                     <div className="star-rating">

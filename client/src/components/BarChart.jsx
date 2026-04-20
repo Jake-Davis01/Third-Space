@@ -5,18 +5,19 @@ import {
   BarElement,
   Title,
   Tooltip,
+  Colors,
   Legend
 } from "chart.js";
 
 import { Bar } from "react-chartjs-2";
 
-// register required chart parts
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   Title,
   Tooltip,
+  Colors,
   Legend
 );
 
@@ -27,17 +28,33 @@ function BarChart({ data, title }) {
     indexAxis: "y",
     plugins: {
       legend: {
-        position: "top"
+        position: "top",
+        labels: {
+          color: "#0B0033",
+          font: { family: "Poppins", weight: "600" },
+        }
       },
       title: {
         display: true,
-        text: title
+        text: title,
+        color: "#0B0033",
+        font: { family: "Poppins", size: 14, weight: "700" },
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: "#3e3e3e", font: { family: "Poppins", weight: "600" } },
+        grid: { color: "#cbcaca" },
+      },
+      y: {
+        ticks: { color: "#0B0033", font: { family: "Poppins", weight: "600" } },
+        grid: { color: "#cbcaca" },
       }
     }
   };
 
   return (
-    <div style={{ height: 300, width: "100%" }}>
+    <div style={{ height: "400px", width: "780px" }}>
       <Bar data={data} options={options} />
     </div>
   );

@@ -13,7 +13,7 @@ class HomePageEvents {
         //console.log(`hello ${user_email}`);
 
         const query = `
-        SELECT e.*, er.id AS registration_id
+        SELECT e.*, TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date ,er.id AS registration_id
         FROM events e
         JOIN event_registrations er ON e.id = er.event_id
         WHERE er.user_email = $1
