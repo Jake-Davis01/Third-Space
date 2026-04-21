@@ -568,7 +568,6 @@ async function validateIdeaWithAi(ideaInsights) {
 
   const interestedUsers = toNumber(evaluation.interested_count, 0);
 
-  // Force deterministic custom descriptions for the cases you explicitly want
   if (interestedUsers > 0 && interestedUsers < 5) {
     return {
       ...evaluation,
@@ -579,7 +578,6 @@ async function validateIdeaWithAi(ideaInsights) {
     };
   }
 
-  // Also use deterministic wording for weaker low-confidence outcomes
   if (evaluation.verdict === "not recommended") {
     return {
       ...evaluation,
@@ -668,14 +666,16 @@ Use live web search results to find suitable places for this event.
 Only suggest real places that appear to currently exist.
 Prefer official venue websites or well-known listing sources when possible.
 
-Return VALID JSON ONLY in this exact shape:
+Return JSON ONLY in this exact shape:
 {
   "locations": [
     {
       "name": "string",
       "address": "string",
       "why_it_fits": "string",
-      "source_hint": "string"
+      "source_hint": "string",
+      "requires_booking": true,
+      "booking_url": "string"
     }
   ]
 }
@@ -687,6 +687,11 @@ Rules:
 - do not invent venues
 - if exact matches are limited, return the closest suitable real venues
 - source_hint should be a short plain-text source note like "official website" or "Google Maps listing"
+- requires_booking should be false for activities that usually do not need booking, such as hikes, public walks, public parks, or other open-access locations
+- requires_booking should be true when the place is a venue that normally needs a reservation, tickets, or advance booking
+- booking_url should be the direct booking page when one is clearly available
+- if no booking page is relevant, return an empty string for booking_url
+- if you are unsure, still return the venue with best-effort values instead of omitting it
 
 Event activity: ${activity || ""}
 Category: ${category || ""}
@@ -694,25 +699,141 @@ Preferred city: ${city || ""}
 Event date: ${date || ""}
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      tools: [{ google_search: {} }], // changed: correct Gemini live web search tool name
-      responseMimeType: "application/json", // changed: asks for structured JSON output
-    },
-  });
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ google_search: {} }],
+      },
+    });
 
-  const rawText =
-    typeof response.text === "function" ? response.text() : response.text || "";
+    const rawText =
+      typeof response.text === "function" ? response.text() : response.text || "";
 
-  const parsed = JSON.parse(rawText);
+    console.log("RAW VENUE RESPONSE:", rawText); // changed: log actual Gemini output
 
-  return parsed;
+    const cleaned = rawText
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+
+    let parsed;
+
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("Primary venue JSON parse failed:", parseErr.message); // changed: log parse issue
+
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/); // changed: try extracting first JSON object from mixed text
+      if (!jsonMatch) {
+        throw new Error("No JSON object found in venue response");
+      }
+
+      parsed = JSON.parse(jsonMatch[0]);
+    }
+
+    const locations = Array.isArray(parsed?.locations)
+      ? parsed.locations.map((location) => ({
+          name: location?.name || "Venue suggestion",
+          address: location?.address || "",
+          why_it_fits: location?.why_it_fits || "",
+          source_hint: location?.source_hint || "",
+          requires_booking:
+            typeof location?.requires_booking === "boolean"
+              ? location.requires_booking
+              : true,
+          booking_url: location?.booking_url || "",
+        }))
+      : [];
+
+    console.log("NORMALIZED VENUE LOCATIONS:", locations); // changed: verify final data returned to frontend
+
+    return { locations };
+  } catch (err) {
+    console.error("Error in primary venue suggestion flow:", err.message); // changed: preserve new feature path but add fallback
+
+    try {
+      const fallbackPrompt = `
+You are helping suggest real venues for an event.
+
+Use live web search results.
+Return JSON ONLY in this shape:
+{
+  "locations": [
+    {
+      "name": "string",
+      "address": "string",
+      "why_it_fits": "string",
+      "source_hint": "string"
+    }
+  ]
+}
+
+Event activity: ${activity || ""}
+Category: ${category || ""}
+Preferred city: ${city || ""}
+Event date: ${date || ""}
+`;
+
+      const fallbackResponse = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: fallbackPrompt,
+        config: {
+          tools: [{ google_search: {} }],
+        },
+      });
+
+      const fallbackRaw =
+        typeof fallbackResponse.text === "function"
+          ? fallbackResponse.text()
+          : fallbackResponse.text || "";
+
+      console.log("RAW FALLBACK VENUE RESPONSE:", fallbackRaw); // changed: log fallback response
+
+      const fallbackCleaned = fallbackRaw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+      let fallbackParsed;
+
+      try {
+        fallbackParsed = JSON.parse(fallbackCleaned);
+      } catch (fallbackParseErr) {
+        const fallbackMatch = fallbackCleaned.match(/\{[\s\S]*\}/);
+        if (!fallbackMatch) {
+          throw new Error("No JSON object found in fallback venue response");
+        }
+        fallbackParsed = JSON.parse(fallbackMatch[0]);
+      }
+
+      const fallbackLocations = Array.isArray(fallbackParsed?.locations)
+        ? fallbackParsed.locations.map((location) => ({
+            name: location?.name || "Venue suggestion",
+            address: location?.address || "",
+            why_it_fits: location?.why_it_fits || "",
+            source_hint: location?.source_hint || "",
+            requires_booking: false, // changed: default booking fields when fallback uses old simpler shape
+            booking_url: "",
+          }))
+        : [];
+
+      console.log("FALLBACK VENUE LOCATIONS:", fallbackLocations); // changed: log fallback result
+
+      return { locations: fallbackLocations };
+    } catch (fallbackErr) {
+      console.error("Venue fallback also failed:", fallbackErr.message);
+
+      return { locations: [] }; // changed: always return a safe shape
+    }
+  }
 }
 
 module.exports = {
   generateAiSuggestions,
   validateIdeaWithAi,
-  suggestEventLocationsWithAi, // changed: export new live location suggestion function
+  suggestEventLocationsWithAi,
 };

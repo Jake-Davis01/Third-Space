@@ -12,10 +12,11 @@ async function newUserEvent(req, res) {
 }
 
 async function joinEvent(req, res) {
-    const eventRegistrationID = req.params.id;
+    const eventID = req.params.id;
+    const userEmail = req.body.email; // changed: now we need the user's email because no registration row exists yet
     //console.log(eventID);
     try {
-        const result = await HomePageEvents.joinEvent(eventRegistrationID);
+        const result = await HomePageEvents.joinEvent(eventID, userEmail);
         res.status(200).json(result);
     } catch (err) {
         res.status(401).json({ error: err.message });

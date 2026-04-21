@@ -25,12 +25,13 @@ function Aisuggestions() {
     useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const [liveInterestedCount, setLiveInterestedCount] = useState(null); // changed: added live interested count state
+  const [liveInterestedCount, setLiveInterestedCount] = useState(null);
   const [isLoadingInterestedCount, setIsLoadingInterestedCount] =
-    useState(false); // changed: added loading state for live interested count
-  const [suggestedLocations, setSuggestedLocations] = useState([]); // changed: store live AI venue suggestions for the popup
+    useState(false);
+  const [suggestedLocations, setSuggestedLocations] = useState([]);
   const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] =
-    useState(false); // changed: loading state for live venue suggestions
+    useState(false);
+  const [selectedVenue, setSelectedVenue] = useState(null);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -265,15 +266,15 @@ function Aisuggestions() {
 
   useEffect(() => {
     const fetchInterestedCount = async () => {
-      if (!showModal) return; // changed: only run when modal is open
+      if (!showModal) return;
 
       if (!primaryCategory || !location) {
-        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0); // changed: fallback to original count before full selection
+        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0);
         return;
       }
 
       try {
-        setIsLoadingInterestedCount(true); // changed: show loading while count updates
+        setIsLoadingInterestedCount(true);
 
         const params = new URLSearchParams({
           category_name: primaryCategory,
@@ -290,17 +291,17 @@ function Aisuggestions() {
         }
 
         const data = await response.json();
-        setLiveInterestedCount(Number(data.interested_count) || 0); // changed: store location-based count
+        setLiveInterestedCount(Number(data.interested_count) || 0);
       } catch (err) {
         console.error("Error fetching interested count:", err);
-        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0); // changed: fallback if request fails
+        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0);
       } finally {
-        setIsLoadingInterestedCount(false); // changed: stop loading
+        setIsLoadingInterestedCount(false);
       }
     };
 
     fetchInterestedCount();
-  }, [showModal, primaryCategory, location, selectedEvent]); // changed: refetch when category/location changes
+  }, [showModal, primaryCategory, location, selectedEvent]);
 
   const resetModalState = () => {
     setSelectedEvent(null);
@@ -314,10 +315,11 @@ function Aisuggestions() {
     setShowErrorHint(false);
     setSubmitError("");
     setIsSubmitting(false);
-    setLiveInterestedCount(null); // changed: reset live count
-    setIsLoadingInterestedCount(false); // changed: reset loading state
-    setSuggestedLocations([]); // changed: clear venue suggestions when popup closes
-    setIsLoadingLocationSuggestions(false); // changed: reset venue suggestion loading state
+    setLiveInterestedCount(null);
+    setIsLoadingInterestedCount(false);
+    setSuggestedLocations([]);
+    setIsLoadingLocationSuggestions(false);
+    setSelectedVenue(null);
   };
 
   const resetGeneratorState = () => {
@@ -337,8 +339,9 @@ function Aisuggestions() {
     setEditableTitle(title);
     setCategories(defaultCategories);
     setPrimaryCategory(defaultCategories[0] || "");
-    setLiveInterestedCount(Number(interestedCount) || 0); // changed: initialise popup interested count
-    setSuggestedLocations([]); // changed: clear old venue suggestions before opening a new popup
+    setLiveInterestedCount(Number(interestedCount) || 0);
+    setSuggestedLocations([]);
+    setSelectedVenue(null);
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -364,16 +367,37 @@ function Aisuggestions() {
       setCategories(updatedCategories);
 
       if (primaryCategory === category) {
-        setPrimaryCategory(updatedCategories[0] || ""); // changed: switch primary to another selected category if possible
+        setPrimaryCategory(updatedCategories[0] || "");
       }
     } else {
       const updatedCategories = [...categories, category];
       setCategories(updatedCategories);
 
       if (!primaryCategory) {
-        setPrimaryCategory(category); // changed: auto-set primary category when first category is chosen
+        setPrimaryCategory(category);
       }
     }
+  };
+
+  const buildFinalEmployeeMessage = () => {
+    const baseMessage = message.trim();
+
+    if (!selectedVenue) {
+      return baseMessage;
+    }
+
+    const venueLines = [
+      "",
+      `Venue: ${selectedVenue.name}`,
+      selectedVenue.address ? `Address: ${selectedVenue.address}` : "",
+      selectedVenue.requires_booking === false
+        ? "Booking: no advance booking is usually needed."
+        : selectedVenue.booking_url
+        ? `Booking link: ${selectedVenue.booking_url}`
+        : "",
+    ].filter(Boolean);
+
+    return `${baseMessage}\n\n${venueLines.join("\n")}`;
   };
 
   const handleSubmit = async () => {
@@ -409,7 +433,7 @@ function Aisuggestions() {
         },
         body: JSON.stringify({
           title: editableTitle.trim(),
-          description: selectedEvent.description,
+          description: buildFinalEmployeeMessage(),
           event_date: date,
           location,
           primary_category_name: primaryCategory,
@@ -548,16 +572,29 @@ function Aisuggestions() {
     setEditableTitle(ideaToUse?.title || generatorInput);
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
-    setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0); // changed: initialise popup interested count for generated idea
-    setSuggestedLocations([]); // changed: clear old venue suggestions before opening popup from generated idea
+    setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0);
+    setSuggestedLocations([]);
+    setSelectedVenue(null);
     setShowModal(true);
     setSubmitError("");
   };
 
   const handleSuggestLocations = async () => {
     try {
+      console.log("SUGGEST VENUES CLICKED"); // changed: confirm button click is firing
       setIsLoadingLocationSuggestions(true);
       setSuggestedLocations([]);
+      setSelectedVenue(null);
+
+      const payload = {
+        activity: editableTitle,
+        category: primaryCategory || categories[0] || "",
+        city:
+          location && location !== "Fully remote" ? location : "Manchester",
+        date,
+      };
+
+      console.log("VENUE REQUEST PAYLOAD:", payload); // changed: confirm request body before fetch
 
       const response = await fetch(
         "http://localhost:3000/api/ai/suggest-locations",
@@ -566,25 +603,24 @@ function Aisuggestions() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            activity: editableTitle,
-            category: primaryCategory || categories[0] || "",
-            city:
-              location && location !== "Fully remote" ? location : "Manchester",
-            date,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Request failed: ${response.status} ${errorText}`);
-      }
+      console.log("VENUE RESPONSE STATUS:", response.status); // changed: confirm response status
 
       const data = await response.json();
+      console.log("VENUE RESPONSE DATA:", data); // changed: inspect returned data in browser console
+
+      if (!response.ok) {
+        throw new Error(
+          `Request failed: ${response.status} ${JSON.stringify(data)}`
+        );
+      }
+
       setSuggestedLocations(
         Array.isArray(data.locations) ? data.locations : []
-      ); // changed: populate popup with live venue suggestions
+      );
     } catch (err) {
       console.error("Error suggesting locations:", err);
       setSuggestedLocations([]);
@@ -619,7 +655,7 @@ function Aisuggestions() {
       categories:
         categories.length > 0 ? categories : selectedEvent.categories,
       interested_count:
-        liveInterestedCount ?? (Number(selectedEvent?.interested_count) || 0), // changed: fixed parse error and uses updated interested count
+        liveInterestedCount ?? (Number(selectedEvent?.interested_count) || 0),
       best_location: location || "Manchester",
     };
 
@@ -630,7 +666,7 @@ function Aisuggestions() {
     categories,
     location,
     liveInterestedCount,
-  ]); // changed: added liveInterestedCount dependency
+  ]);
 
   return (
     <div className="aisuggestions__container">
@@ -976,27 +1012,69 @@ function Aisuggestions() {
                       and selected city.
                     </p>
 
-                    {suggestedLocations.map((place, index) => (
-                      <div
-                        key={`${place.name}-${index}`}
-                        className="aisuggestions__card"
-                      >
-                        <div className="aisuggestions__cardHeader">
-                          <div className="aisuggestions__cardBody">
-                            <strong className="aisuggestions__cardTitle">
-                              {place.name}
-                            </strong>
-                            <p className="aisuggestions__cardText">
-                              {place.address}
-                              <br />
-                              {place.why_it_fits}
-                              <br />
-                              <em>{place.source_hint}</em>
-                            </p>
+                    {suggestedLocations.map((place, index) => {
+                      const isSelected = selectedVenue?.name === place.name;
+
+                      return (
+                        <div
+                          key={`${place.name}-${index}`}
+                          className="aisuggestions__card"
+                          style={{
+                            borderColor: isSelected ? "#9333ea" : undefined,
+                            boxShadow: isSelected
+                              ? "0 0 0 2px rgba(147, 51, 234, 0.15)"
+                              : undefined,
+                          }}
+                        >
+                          <div className="aisuggestions__cardHeader">
+                            <div className="aisuggestions__cardBody">
+                              <strong className="aisuggestions__cardTitle">
+                                {place.name}
+                              </strong>
+                              <p className="aisuggestions__cardText">
+                                {place.address}
+                                <br />
+                                {place.why_it_fits}
+                                {place.requires_booking === false && (
+                                  <>
+                                    <br />
+                                    No advance booking usually needed.
+                                  </>
+                                )}
+                                {place.booking_url && (
+                                  <>
+                                    <br />
+                                    <a
+                                      href={place.booking_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Book venue
+                                    </a>
+                                  </>
+                                )}
+                                <br />
+                                <em>{place.source_hint}</em>
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="aisuggestions__cardButton"
+                              onClick={() => setSelectedVenue(place)}
+                            >
+                              {isSelected ? "Selected" : "Use Venue"}
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+
+                    {selectedVenue && (
+                      <p className="aisuggestions__helperText">
+                        Selected venue: <strong>{selectedVenue.name}</strong>
+                      </p>
+                    )}
                   </div>
                 )}
 

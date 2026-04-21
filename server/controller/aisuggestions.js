@@ -2,7 +2,7 @@ const Event = require("../models/Aisuggestions");
 const {
   generateAiSuggestions,
   validateIdeaWithAi,
-  suggestEventLocationsWithAi, // changed: import live location suggestion service
+  suggestEventLocationsWithAi,
 } = require("../services/geminiService");
 
 const createEvent = async (req, res) => {
@@ -211,6 +211,8 @@ const validateIdea = async (req, res) => {
 
 const suggestLocations = async (req, res) => {
   try {
+    console.log("SUGGEST LOCATIONS REQ BODY:", req.body); // changed: confirm frontend request is reaching the server
+
     const { activity, category, city, date } = req.body;
 
     if (!activity && !category) {
@@ -224,14 +226,18 @@ const suggestLocations = async (req, res) => {
       category: category || "",
       city: city || "",
       date: date || "",
-    }); // changed: call live Gemini venue suggestion service
+    });
 
-    res.status(200).json(result);
+    console.log("SUGGEST LOCATIONS RESULT:", result); // changed: verify backend result before sending response
+
+    return res.status(200).json(
+      result || { locations: [] } // changed: never send an empty body
+    );
   } catch (err) {
     console.error("Error suggesting locations:", err);
     console.error("Location suggestion error message:", err.message);
     console.error("Location suggestion error stack:", err.stack);
-    res.status(500).json({ error: "Failed to suggest locations" });
+    return res.status(500).json({ error: "Failed to suggest locations" });
   }
 };
 
@@ -245,5 +251,5 @@ module.exports = {
   getAiSuggestions,
   getInterestedCount,
   validateIdea,
-  suggestLocations, // changed: export new controller
+  suggestLocations,
 };
