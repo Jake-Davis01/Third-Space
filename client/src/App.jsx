@@ -16,7 +16,7 @@ import SignUp from "./components/signup";
 import LandingPage from "./components/landingPage";
 import Profile from "./components/profile";
 import Events from "./components/Events";
-
+import EventHub from "./components/eventHub"
 
 // Layout component that includes the NavBar
     const WithNav = ({ isEO }) => (
@@ -46,6 +46,7 @@ function App() {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/aisuggestions" element={<Aisuggestions />} />
+                    <Route path="/eventHub" element={<EventHub />} />
                 </Route>
             </Routes>
         </Router>

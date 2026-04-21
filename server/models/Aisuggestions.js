@@ -556,19 +556,20 @@ class Event {
 
   static async getAllEvents() {
     const result = await db.query(`
-      SELECT
-        e.*,
-        COALESCE(
-          ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
-          FILTER (WHERE ec.category_name IS NOT NULL),
-          ARRAY[]::TEXT[]
-        ) AS categories
-      FROM events e
-      LEFT JOIN event_categories ec
-        ON e.id = ec.event_id
-      GROUP BY e.id
-      ORDER BY e.event_date ASC, e.created_at DESC, e.id ASC;
-    `);
+    SELECT
+      e.*,
+      TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+      COALESCE(
+        ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
+        FILTER (WHERE ec.category_name IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS categories
+    FROM events e
+    LEFT JOIN event_categories ec
+      ON e.id = ec.event_id
+    GROUP BY e.id
+    ORDER BY e.event_date ASC, e.created_at DESC, e.id ASC;
+  `);
 
     return result.rows;
   }
@@ -622,7 +623,14 @@ class Event {
           location = $4,
           event_date = $5
         WHERE id = $6
-        RETURNING *;
+        RETURNING
+          id,
+          title,
+          description,
+          category_name,
+          location,
+          TO_CHAR(event_date, 'DD/MM/YYYY') AS event_date,
+          created_at;
         `,
         [title, description, category_name, location, event_date, id]
       );
@@ -665,7 +673,12 @@ class Event {
       const finalResult = await db.query(
         `
         SELECT
-          e.*,
+          e.id,
+          e.title,
+          e.description,
+          e.location,
+          TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+          e.created_at,
           COALESCE(
             ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
             FILTER (WHERE ec.category_name IS NOT NULL),
@@ -675,7 +688,7 @@ class Event {
         LEFT JOIN event_categories ec
           ON e.id = ec.event_id
         WHERE e.id = $1
-        GROUP BY e.id;
+        GROUP BY e.id, e.title, e.description, e.location, e.event_date, e.created_at;
         `,
         [id]
       );
@@ -844,27 +857,44 @@ class Event {
   static async getInterestedCountByCategoryAndLocation(category_name, location) {
     if (!category_name) return 0;
 
-    let query = `
-      SELECT COUNT(DISTINCT ui.user_email) AS interested_count
-      FROM user_interests ui
-      WHERE LOWER(TRIM(ui.interest_name)) = LOWER(TRIM($1))
-    `;
-
-    const values = [category_name];
-
-    if (location && location.trim()) {
-      query = `
+    if (!location || !location.trim()) {
+      const result = await db.query(
+        `
         SELECT COUNT(DISTINCT ui.user_email) AS interested_count
         FROM user_interests ui
-        JOIN users u
-          ON u.email = ui.user_email
         WHERE LOWER(TRIM(ui.interest_name)) = LOWER(TRIM($1))
-          AND LOWER(TRIM(COALESCE(u.office_location, ''))) = LOWER(TRIM($2))
-      `;
-      values.push(location);
-    }
+        `,
+        [category_name]
+      );
 
-    const result = await db.query(query, values);
+      return Number(result.rows[0]?.interested_count || 0);
+    } // changed: if no location yet, return full category count
+
+    if (location.trim().toLowerCase() === "fully remote") {
+      const result = await db.query(
+        `
+        SELECT COUNT(DISTINCT ui.user_email) AS interested_count
+        FROM user_interests ui
+        WHERE LOWER(TRIM(ui.interest_name)) = LOWER(TRIM($1))
+        `,
+        [category_name]
+      );
+
+      return Number(result.rows[0]?.interested_count || 0);
+    } // changed: fully remote should include everyone with that interest
+
+    const result = await db.query(
+      `
+      SELECT COUNT(DISTINCT ui.user_email) AS interested_count
+      FROM user_interests ui
+      JOIN users u
+        ON u.email = ui.user_email
+      WHERE LOWER(TRIM(ui.interest_name)) = LOWER(TRIM($1))
+        AND LOWER(TRIM(COALESCE(u.office_location, ''))) = LOWER(TRIM($2))
+      `,
+      [category_name, location]
+    ); // changed: office location filtering only runs for office-based locations
+
     return Number(result.rows[0]?.interested_count || 0);
   }
 
@@ -985,7 +1015,7 @@ class Event {
       topMatchCandidates: scoredMatches.slice(0, 3),
       categoryStats,
       interestStats,
-      locationStats,
+      locationStats, // changed: kept location breakdown available so location-based interest logic can use event/location insight data elsewhere if needed
       topInterests: topInterestsResult.rows,
     };
   }
