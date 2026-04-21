@@ -25,6 +25,10 @@ function Aisuggestions() {
     useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const [liveInterestedCount, setLiveInterestedCount] = useState(null); // changed: added live interested count state
+  const [isLoadingInterestedCount, setIsLoadingInterestedCount] =
+    useState(false); // changed: added loading state for live interested count
+
   const today = new Date().toISOString().split("T")[0];
 
   const categoryOptions = [
@@ -225,7 +229,7 @@ function Aisuggestions() {
       try {
         setIsLoadingPopular(true);
 
-        const response = await fetch("https://third-space-backend-sjay.onrender.com/api/ai/suggestions");
+        const response = await fetch("http://localhost:3000/api/ai/suggestions");
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -256,6 +260,45 @@ function Aisuggestions() {
     fetchAiSuggestions();
   }, []);
 
+  useEffect(() => {
+    const fetchInterestedCount = async () => {
+      if (!showModal) return; // changed: only run when modal is open
+
+      if (!primaryCategory || !location) {
+        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0); // changed: fallback to original count before full selection
+        return;
+      }
+
+      try {
+        setIsLoadingInterestedCount(true); // changed: show loading while count updates
+
+        const params = new URLSearchParams({
+          category_name: primaryCategory,
+          location,
+        });
+
+        const response = await fetch(
+          `http://localhost:3000/api/ai/interested-count?${params.toString()}`
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Request failed: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        setLiveInterestedCount(Number(data.interested_count) || 0); // changed: store location-based count
+      } catch (err) {
+        console.error("Error fetching interested count:", err);
+        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0); // changed: fallback if request fails
+      } finally {
+        setIsLoadingInterestedCount(false); // changed: stop loading
+      }
+    };
+
+    fetchInterestedCount();
+  }, [showModal, primaryCategory, location, selectedEvent]); // changed: refetch when category/location changes
+
   const resetModalState = () => {
     setSelectedEvent(null);
     setEditableTitle("");
@@ -268,6 +311,8 @@ function Aisuggestions() {
     setShowErrorHint(false);
     setSubmitError("");
     setIsSubmitting(false);
+    setLiveInterestedCount(null); // changed: reset live count
+    setIsLoadingInterestedCount(false); // changed: reset loading state
   };
 
   const resetGeneratorState = () => {
@@ -287,6 +332,7 @@ function Aisuggestions() {
     setEditableTitle(title);
     setCategories(defaultCategories);
     setPrimaryCategory(defaultCategories[0] || "");
+    setLiveInterestedCount(Number(interestedCount) || 0); // changed: initialise popup interested count
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -312,10 +358,15 @@ function Aisuggestions() {
       setCategories(updatedCategories);
 
       if (primaryCategory === category) {
-        setPrimaryCategory("");
+        setPrimaryCategory(updatedCategories[0] || ""); // changed: switch primary to another selected category if possible
       }
     } else {
-      setCategories([...categories, category]);
+      const updatedCategories = [...categories, category];
+      setCategories(updatedCategories);
+
+      if (!primaryCategory) {
+        setPrimaryCategory(category); // changed: auto-set primary category when first category is chosen
+      }
     }
   };
 
@@ -345,7 +396,7 @@ function Aisuggestions() {
       console.log("primary category:", primaryCategory);
       console.log("all categories:", categories);
 
-      const response = await fetch("https://third-space-backend-sjay.onrender.com/api/events", {
+      const response = await fetch("http://localhost:3000/api/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -400,7 +451,7 @@ function Aisuggestions() {
       setIsGenerating(true);
       setGeneratedIdea(null);
 
-      const response = await fetch("https://third-space-backend-sjay.onrender.com/api/ai/validate-idea", {
+      const response = await fetch("http://localhost:3000/api/ai/validate-idea", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -442,7 +493,7 @@ function Aisuggestions() {
       setIsGenerating(true);
       setGeneratedIdea(null);
 
-      const response = await fetch("https://third-space-backend-sjay.onrender.com/api/ai/validate-idea", {
+      const response = await fetch("http://localhost:3000/api/ai/validate-idea", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -491,6 +542,7 @@ function Aisuggestions() {
     setEditableTitle(ideaToUse?.title || generatorInput);
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
+    setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0); // changed: initialise popup interested count for generated idea
     setShowModal(true);
     setSubmitError("");
   };
@@ -520,12 +572,19 @@ function Aisuggestions() {
         primaryCategory || categories[0] || selectedEvent.category_name,
       categories:
         categories.length > 0 ? categories : selectedEvent.categories,
-      interested_count: Number(selectedEvent.interested_count) || 0,
+      interested_count:
+        liveInterestedCount ?? (Number(selectedEvent?.interested_count) || 0), // changed: fixed parse error and uses updated interested count
       best_location: location || "Manchester",
     };
 
     return estimateCost(eventForEstimate);
-  }, [selectedEvent, primaryCategory, categories, location]);
+  }, [
+    selectedEvent,
+    primaryCategory,
+    categories,
+    location,
+    liveInterestedCount,
+  ]); // changed: added liveInterestedCount dependency
 
   return (
     <div className="aisuggestions__container">
@@ -787,7 +846,10 @@ function Aisuggestions() {
 
                 <p>
                   <strong>Interested Members:</strong>{" "}
-                  {selectedEvent?.interested_count ?? 0}
+                  {isLoadingInterestedCount
+                    ? "Updating..."
+                    : (liveInterestedCount ??
+                        (Number(selectedEvent?.interested_count) || 0))}
                 </p>
 
                 {selectedEventCostPreview && (
