@@ -1,0 +1,231 @@
+#eventsHubPage {
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+
+.events-container {
+    border: 1.5px solid #e9d5ff;
+    border-radius: 14px;
+    padding: 1rem 2rem;
+    margin: 1rem 2rem;
+    background-color: #ffffff;
+    transition: box-shadow 0.2s;
+}
+
+.events-container:hover {
+    box-shadow: 0 4px 16px rgba(147, 51, 234, 0.08);
+}
+
+.events-container h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0B0033;
+    margin-bottom: 0.5rem;
+}
+
+.events-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.events-footer .date {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #9333ea;
+}
+
+.events-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.events-actions span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0B0033;
+}
+
+.join-button {
+    border-radius: 8px;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background-color: #0B0033;
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.15s;
+}
+
+.join-button:hover {
+    background-color: #9333ea;
+}
+
+.join-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(11, 0, 51, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 10px;
+    width: 520px;
+    max-width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1.5px solid #e9d5ff;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1.5px solid #e9d5ff;
+}
+
+.modal-header h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0B0033;
+    margin: 0;
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #0B0033;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background-color 0.15s;
+}
+
+.modal-header button:hover {
+    background-color: #faf5ff;
+    color: #9333ea;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 24px;
+}
+
+.modal-body label {
+    color: #9333ea;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 10px;
+}
+
+.modal-body label:first-child {
+    margin-top: 0;
+}
+
+.modal-body input,
+.modal-body textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1.5px solid #e9d5ff;
+    background: #ffffff;
+    color: #0B0033;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus {
+    outline: none;
+    border-color: #9333ea;
+}
+
+.modal-body textarea {
+    resize: vertical;
+    line-height: 1.4em;
+}
+
+.modal-body .error {
+    font-size: 0.85rem;
+    color: #dc2626;
+    background: #fef2f2;
+    border-left: 3px solid #dc2626;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1.5px solid #e9d5ff;
+}
+
+.modal-footer button {
+    border-radius: 8px;
+    font-size: 0.9rem;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    transition: background-color 0.15s;
+    border: none;
+}
+
+.modal-footer button:first-child {
+    background-color: #ffffff;
+    color: #0B0033;
+    border: 1.5px solid #e9d5ff;
+}
+
+.modal-footer button:first-child:hover {
+    background-color: #faf5ff;
+    border-color: #9333ea;
+}
+
+.modal-footer button:last-child {
+    background-color: #0B0033;
+    color: #ffffff;
+}
+
+.modal-footer button:last-child:hover {
+    background-color: #9333ea;
+}
+
+.modal-footer button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.profile-input{ 
+    width: 100%;
+}

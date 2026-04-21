@@ -554,6 +554,168 @@ class Event {
     }
   }
 
+  static async getAllEvents() {
+    const result = await db.query(`
+    SELECT
+      e.*,
+      TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+      COALESCE(
+        ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
+        FILTER (WHERE ec.category_name IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS categories
+    FROM events e
+    LEFT JOIN event_categories ec
+      ON e.id = ec.event_id
+    GROUP BY e.id
+    ORDER BY e.event_date ASC, e.created_at DESC, e.id ASC;
+  `);
+
+    return result.rows;
+  }
+
+  static async updateById(id, data) {
+    const client = await db.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      const existingEventResult = await client.query(
+        `
+        SELECT *
+        FROM events
+        WHERE id = $1;
+        `,
+        [id]
+      );
+
+      const existingEvent = existingEventResult.rows[0];
+
+      if (!existingEvent) {
+        await client.query("ROLLBACK");
+        return null;
+      }
+
+      const title =
+        data.title !== undefined ? data.title : existingEvent.title;
+      const description =
+        data.description !== undefined
+          ? data.description
+          : existingEvent.description;
+      const event_date =
+        data.event_date !== undefined ? data.event_date : existingEvent.event_date;
+      const location =
+        data.location !== undefined ? data.location : existingEvent.location;
+      const category_name =
+        data.category_name !== undefined
+          ? data.category_name
+          : data.primary_category_name !== undefined
+          ? data.primary_category_name
+          : existingEvent.category_name;
+
+      const updateResult = await client.query(
+        `
+        UPDATE events
+        SET
+          title = $1,
+          description = $2,
+          category_name = $3,
+          location = $4,
+          event_date = $5
+        WHERE id = $6
+        RETURNING
+          id,
+          title,
+          description,
+          category_name,
+          location,
+          TO_CHAR(event_date, 'DD/MM/YYYY') AS event_date,
+          created_at;
+        `,
+        [title, description, category_name, location, event_date, id]
+      );
+
+      const updatedEvent = updateResult.rows[0];
+
+      if (Array.isArray(data.categories)) {
+        const uniqueCategories = [
+          ...new Set(
+            [category_name, ...data.categories]
+              .map((category) =>
+                typeof category === "string" ? category.trim() : ""
+              )
+              .filter(Boolean)
+          ),
+        ];
+
+        await client.query(
+          `
+          DELETE FROM event_categories
+          WHERE event_id = $1;
+          `,
+          [id]
+        );
+
+        for (const category of uniqueCategories) {
+          await client.query(
+            `
+            INSERT INTO event_categories (event_id, category_name)
+            VALUES ($1, $2)
+            ON CONFLICT (event_id, category_name) DO NOTHING;
+            `,
+            [id, category]
+          );
+        }
+      }
+
+      await client.query("COMMIT");
+
+      const finalResult = await db.query(
+        `
+        SELECT
+          e.id,
+          e.title,
+          e.description,
+          e.location,
+          TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+          e.created_at,
+          COALESCE(
+            ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
+            FILTER (WHERE ec.category_name IS NOT NULL),
+            ARRAY[]::TEXT[]
+          ) AS categories
+        FROM events e
+        LEFT JOIN event_categories ec
+          ON e.id = ec.event_id
+        WHERE e.id = $1
+        GROUP BY e.id, e.title, e.description, e.location, e.event_date, e.created_at;
+        `,
+        [id]
+      );
+
+      return finalResult.rows[0] || updatedEvent;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      console.error("Error updating event:", err);
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async deleteById(id) {
+    const result = await db.query(
+      `
+      DELETE FROM events
+      WHERE id = $1
+      RETURNING *;
+      `,
+      [id]
+    );
+
+    return result.rows[0] || null;
+  }
+
   static async getPopularEvents() {
     const result = await db.query(`
       WITH ranked_interests AS (
