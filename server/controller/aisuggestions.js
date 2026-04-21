@@ -22,6 +22,53 @@ const createEvent = async (req, res) => {
   }
 };
 
+const getAllEvents = async (req, res) => {
+  try {
+    const events = await Event.getAllEvents();
+    res.status(200).json(events);
+  } catch (err) {
+    console.error("Error fetching all events:", err);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+};
+
+const updateEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updatedEvent = await Event.updateById(id, req.body);
+
+    if (!updatedEvent) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.status(200).json(updatedEvent);
+  } catch (err) {
+    console.error("Error updating event:", err);
+    res.status(500).json({ error: "Failed to update event" });
+  }
+};
+
+const deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedEvent = await Event.deleteById(id);
+
+    if (!deletedEvent) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.status(200).json({
+      message: "Event deleted successfully",
+      event: deletedEvent,
+    });
+  } catch (err) {
+    console.error("Error deleting event:", err);
+    res.status(500).json({ error: "Failed to delete event" });
+  }
+};
+
 const getPopularEvents = async (req, res) => {
   try {
     const events = await Event.getPopularEvents();
@@ -163,6 +210,9 @@ const validateIdea = async (req, res) => {
 
 module.exports = {
   createEvent,
+  getAllEvents,
+  updateEvent,
+  deleteEvent,
   getPopularEvents,
   getSuggestionInsights,
   getAiSuggestions,
