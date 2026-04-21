@@ -14,6 +14,8 @@ function NavBar({ isEO }) {
                 <Link to="/profile">Profile</Link>
                 {isEO && <Link to="/dashboard">Dashboard</Link>}
                 {isEO && <Link to="/aisuggestions">AI</Link>}
+                {isEO && <Link to="/eventHub">Events Hub</Link>}
+
                 <Link to="/">Logout</Link>
             </div>
         </nav>
