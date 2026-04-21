@@ -6,6 +6,7 @@ function Aisuggestions() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editableTitle, setEditableTitle] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
   const [primaryCategory, setPrimaryCategory] = useState("");
@@ -153,6 +154,35 @@ function Aisuggestions() {
     Edinburgh: 1.08,
     Manchester: 1.0,
     Birmingham: 0.97,
+  };
+
+  const generateTimeOptions = () => {
+    const options = [];
+
+    for (let hour = 8; hour <= 20; hour += 1) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const hh = String(hour).padStart(2, "0");
+        const mm = String(minute).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  const formatTimeLabel = (timeValue) => {
+    if (!timeValue) return "";
+
+    const [hourString, minuteString] = timeValue.split(":");
+    const hour = Number(hourString);
+    const minute = Number(minuteString);
+
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+    return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
   };
 
   const pickRandom = (items = []) => {
@@ -307,6 +337,7 @@ function Aisuggestions() {
     setSelectedEvent(null);
     setEditableTitle("");
     setDate("");
+    setTime("");
     setLocation("");
     setCategories([]);
     setPrimaryCategory("");
@@ -337,6 +368,10 @@ function Aisuggestions() {
   ) => {
     setSelectedEvent({ title, description, interested_count: interestedCount });
     setEditableTitle(title);
+    setDate("");
+    setTime("");
+    setLocation("");
+    setMessage("");
     setCategories(defaultCategories);
     setPrimaryCategory(defaultCategories[0] || "");
     setLiveInterestedCount(Number(interestedCount) || 0);
@@ -382,22 +417,22 @@ function Aisuggestions() {
   const buildFinalEmployeeMessage = () => {
     const baseMessage = message.trim();
 
-    if (!selectedVenue) {
-      return baseMessage;
-    }
-
-    const venueLines = [
-      "",
-      `Venue: ${selectedVenue.name}`,
-      selectedVenue.address ? `Address: ${selectedVenue.address}` : "",
-      selectedVenue.requires_booking === false
+    const metadataLines = [
+      time ? `Event time: ${time}` : "",
+      selectedVenue ? `Venue: ${selectedVenue.name}` : "",
+      selectedVenue?.address ? `Address: ${selectedVenue.address}` : "",
+      selectedVenue?.requires_booking === false
         ? "Booking: no advance booking is usually needed."
-        : selectedVenue.booking_url
+        : selectedVenue?.booking_url
         ? `Booking link: ${selectedVenue.booking_url}`
         : "",
     ].filter(Boolean);
 
-    return `${baseMessage}\n\n${venueLines.join("\n")}`;
+    if (metadataLines.length === 0) {
+      return baseMessage;
+    }
+
+    return `${baseMessage}\n\n${metadataLines.join("\n")}`;
   };
 
   const handleSubmit = async () => {
@@ -406,6 +441,7 @@ function Aisuggestions() {
     if (
       !editableTitle.trim() ||
       !date ||
+      !time ||
       !location ||
       categories.length === 0 ||
       !primaryCategory ||
@@ -425,6 +461,7 @@ function Aisuggestions() {
       console.log("userEmail:", userEmail);
       console.log("primary category:", primaryCategory);
       console.log("all categories:", categories);
+      console.log("selected time:", time);
 
       const response = await fetch("http://localhost:3000/api/events", {
         method: "POST",
@@ -435,6 +472,7 @@ function Aisuggestions() {
           title: editableTitle.trim(),
           description: buildFinalEmployeeMessage(),
           event_date: date,
+          event_time: time,
           location,
           primary_category_name: primaryCategory,
           categories,
@@ -467,6 +505,7 @@ function Aisuggestions() {
   const canSubmit =
     editableTitle.trim() &&
     date &&
+    time &&
     location &&
     categories.length > 0 &&
     primaryCategory &&
@@ -570,6 +609,10 @@ function Aisuggestions() {
       interested_count: Number(ideaToUse?.interested_count) || 0,
     });
     setEditableTitle(ideaToUse?.title || generatorInput);
+    setDate("");
+    setTime("");
+    setLocation("");
+    setMessage("");
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
     setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0);
@@ -980,6 +1023,33 @@ function Aisuggestions() {
                     min={today}
                     className="aisuggestions__input"
                   />
+                </div>
+
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !time ? "aisuggestions__error" : ""
+                  }`}
+                >
+                  <label className="aisuggestions__label">
+                    Select Event Time
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Choose a start time for the event
+                  </p>
+
+                  <select
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="aisuggestions__input"
+                  >
+                    <option value="">Choose a time</option>
+                    {timeOptions.map((timeOption) => (
+                      <option key={timeOption} value={timeOption}>
+                        {formatTimeLabel(timeOption)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div

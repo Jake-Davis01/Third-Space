@@ -395,13 +395,17 @@ async function generateAiSuggestions(insights) {
     best_location: bestLocationForCategory(interest.category_name),
   }));
 
-  const nicheCategory = underusedCategories.find(
-    (item) =>
-      !exactTopThree.some(
-        (top) =>
-          top.category_name.toLowerCase() === item.category_name.toLowerCase()
-      )
-  );
+  const nichePool = underusedCategories // added: build a pool of possible niche categories
+    .filter(
+      (item) =>
+        !exactTopThree.some(
+          (top) =>
+            top.category_name.toLowerCase() === item.category_name.toLowerCase()
+        )
+    )
+    .slice(0, 6); // added: keep it to a small handful of options
+
+  const nicheCategory = nichePool.length > 0 ? pickRandom(nichePool) : null; // added: choose one niche option at random on each request
 
   const prompt = `
 You are helping generate workplace social event suggestions.
@@ -463,6 +467,7 @@ ${JSON.stringify(
   {
     exactTopThree,
     nicheCategory,
+    nichePool, // added: include the pool for debugging/traceability in the prompt context
     topLocations,
   },
   null,
