@@ -1,4 +1,4 @@
-const Event = require("../models/AiSuggestions");
+const Event = require("../models/Aisuggestions");
 const {
   generateAiSuggestions,
   validateIdeaWithAi,
