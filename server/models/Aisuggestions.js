@@ -556,19 +556,20 @@ class Event {
 
   static async getAllEvents() {
     const result = await db.query(`
-      SELECT
-        e.*,
-        COALESCE(
-          ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
-          FILTER (WHERE ec.category_name IS NOT NULL),
-          ARRAY[]::TEXT[]
-        ) AS categories
-      FROM events e
-      LEFT JOIN event_categories ec
-        ON e.id = ec.event_id
-      GROUP BY e.id
-      ORDER BY e.event_date ASC, e.created_at DESC, e.id ASC;
-    `);
+    SELECT
+      e.*,
+      TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+      COALESCE(
+        ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
+        FILTER (WHERE ec.category_name IS NOT NULL),
+        ARRAY[]::TEXT[]
+      ) AS categories
+    FROM events e
+    LEFT JOIN event_categories ec
+      ON e.id = ec.event_id
+    GROUP BY e.id
+    ORDER BY e.event_date ASC, e.created_at DESC, e.id ASC;
+  `);
 
     return result.rows;
   }
@@ -622,7 +623,14 @@ class Event {
           location = $4,
           event_date = $5
         WHERE id = $6
-        RETURNING *;
+        RETURNING
+          id,
+          title,
+          description,
+          category_name,
+          location,
+          TO_CHAR(event_date, 'DD/MM/YYYY') AS event_date,
+          created_at;
         `,
         [title, description, category_name, location, event_date, id]
       );
@@ -665,7 +673,12 @@ class Event {
       const finalResult = await db.query(
         `
         SELECT
-          e.*,
+          e.id,
+          e.title,
+          e.description,
+          e.location,
+          TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+          e.created_at,
           COALESCE(
             ARRAY_AGG(ec.category_name ORDER BY ec.category_name)
             FILTER (WHERE ec.category_name IS NOT NULL),
@@ -675,7 +688,7 @@ class Event {
         LEFT JOIN event_categories ec
           ON e.id = ec.event_id
         WHERE e.id = $1
-        GROUP BY e.id;
+        GROUP BY e.id, e.title, e.description, e.location, e.event_date, e.created_at;
         `,
         [id]
       );
