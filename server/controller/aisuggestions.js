@@ -2,6 +2,7 @@ const Event = require("../models/Aisuggestions");
 const {
   generateAiSuggestions,
   validateIdeaWithAi,
+  suggestEventLocationsWithAi, // changed: import live location suggestion service
 } = require("../services/geminiService");
 
 const createEvent = async (req, res) => {
@@ -208,6 +209,32 @@ const validateIdea = async (req, res) => {
   }
 };
 
+const suggestLocations = async (req, res) => {
+  try {
+    const { activity, category, city, date } = req.body;
+
+    if (!activity && !category) {
+      return res
+        .status(400)
+        .json({ error: "activity or category is required" });
+    }
+
+    const result = await suggestEventLocationsWithAi({
+      activity: activity || "",
+      category: category || "",
+      city: city || "",
+      date: date || "",
+    }); // changed: call live Gemini venue suggestion service
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error suggesting locations:", err);
+    console.error("Location suggestion error message:", err.message);
+    console.error("Location suggestion error stack:", err.stack);
+    res.status(500).json({ error: "Failed to suggest locations" });
+  }
+};
+
 module.exports = {
   createEvent,
   getAllEvents,
@@ -218,4 +245,5 @@ module.exports = {
   getAiSuggestions,
   getInterestedCount,
   validateIdea,
+  suggestLocations, // changed: export new controller
 };

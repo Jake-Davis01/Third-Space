@@ -28,6 +28,9 @@ function Aisuggestions() {
   const [liveInterestedCount, setLiveInterestedCount] = useState(null); // changed: added live interested count state
   const [isLoadingInterestedCount, setIsLoadingInterestedCount] =
     useState(false); // changed: added loading state for live interested count
+  const [suggestedLocations, setSuggestedLocations] = useState([]); // changed: store live AI venue suggestions for the popup
+  const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] =
+    useState(false); // changed: loading state for live venue suggestions
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -313,6 +316,8 @@ function Aisuggestions() {
     setIsSubmitting(false);
     setLiveInterestedCount(null); // changed: reset live count
     setIsLoadingInterestedCount(false); // changed: reset loading state
+    setSuggestedLocations([]); // changed: clear venue suggestions when popup closes
+    setIsLoadingLocationSuggestions(false); // changed: reset venue suggestion loading state
   };
 
   const resetGeneratorState = () => {
@@ -333,6 +338,7 @@ function Aisuggestions() {
     setCategories(defaultCategories);
     setPrimaryCategory(defaultCategories[0] || "");
     setLiveInterestedCount(Number(interestedCount) || 0); // changed: initialise popup interested count
+    setSuggestedLocations([]); // changed: clear old venue suggestions before opening a new popup
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -543,8 +549,48 @@ function Aisuggestions() {
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
     setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0); // changed: initialise popup interested count for generated idea
+    setSuggestedLocations([]); // changed: clear old venue suggestions before opening popup from generated idea
     setShowModal(true);
     setSubmitError("");
+  };
+
+  const handleSuggestLocations = async () => {
+    try {
+      setIsLoadingLocationSuggestions(true);
+      setSuggestedLocations([]);
+
+      const response = await fetch(
+        "http://localhost:3000/api/ai/suggest-locations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activity: editableTitle,
+            category: primaryCategory || categories[0] || "",
+            city:
+              location && location !== "Fully remote" ? location : "Manchester",
+            date,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Request failed: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      setSuggestedLocations(
+        Array.isArray(data.locations) ? data.locations : []
+      ); // changed: populate popup with live venue suggestions
+    } catch (err) {
+      console.error("Error suggesting locations:", err);
+      setSuggestedLocations([]);
+    } finally {
+      setIsLoadingLocationSuggestions(false);
+    }
   };
 
   const closeGeneratorConfirm = () => {
@@ -907,6 +953,52 @@ function Aisuggestions() {
                     <option value="Birmingham">Birmingham</option>
                   </select>
                 </div>
+
+                <button
+                  type="button"
+                  className="aisuggestions__generateButton"
+                  onClick={handleSuggestLocations}
+                  disabled={isLoadingLocationSuggestions}
+                >
+                  {isLoadingLocationSuggestions
+                    ? "Finding venue suggestions..."
+                    : "Suggest Real Venues"}
+                </button>
+
+                {suggestedLocations.length > 0 && (
+                  <div className="aisuggestions__formGroup">
+                    <label className="aisuggestions__label">
+                      Suggested Venues
+                    </label>
+
+                    <p className="aisuggestions__helperText">
+                      These are live venue suggestions matched to this event idea
+                      and selected city.
+                    </p>
+
+                    {suggestedLocations.map((place, index) => (
+                      <div
+                        key={`${place.name}-${index}`}
+                        className="aisuggestions__card"
+                      >
+                        <div className="aisuggestions__cardHeader">
+                          <div className="aisuggestions__cardBody">
+                            <strong className="aisuggestions__cardTitle">
+                              {place.name}
+                            </strong>
+                            <p className="aisuggestions__cardText">
+                              {place.address}
+                              <br />
+                              {place.why_it_fits}
+                              <br />
+                              <em>{place.source_hint}</em>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div
                   className={`aisuggestions__formGroup ${

@@ -520,28 +520,9 @@ class Event {
         );
       }
 
-      if (this.user_email) {
-        await client.query(
-          `
-          INSERT INTO event_registrations (user_email, event_id, status)
-          VALUES ($1, $2, $3)
-          ON CONFLICT (user_email, event_id) DO NOTHING;
-          `,
-          [this.user_email, newEvent.id, "registered"]
-        );
-
-        await client.query(
-          `
-          INSERT INTO event_registrations (user_email, event_id, status)
-          SELECT ui.user_email, $1, 'unresponsive'
-          FROM user_interests ui
-          WHERE LOWER(TRIM(ui.interest_name)) = LOWER(TRIM($2))
-            AND ui.user_email != $3
-          ON CONFLICT (user_email, event_id) DO NOTHING;
-          `,
-          [newEvent.id, this.category_name, this.user_email]
-        );
-      }
+      // changed: removed automatic registration of the creator
+      // changed: removed automatic registration of users with matching interests
+      // changed: users should join events themselves from the homepage
 
       await client.query("COMMIT");
       return newEvent;
@@ -977,7 +958,7 @@ class Event {
         category_name: finalCategory,
         interested_users: "0",
       };
-      locationStats = locationStatsResult.rows;
+      locationStats = locationStatsResult.rows; // changed: kept location breakdown available so location-based interest logic can use event/location insight data elsewhere if needed
     }
 
     const topInterestsResult = await db.query(`

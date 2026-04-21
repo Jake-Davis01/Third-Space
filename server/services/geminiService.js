@@ -651,7 +651,68 @@ ${JSON.stringify(ideaInsights, null, 2)}
   }
 }
 
+async function suggestEventLocationsWithAi({
+  activity,
+  category,
+  city,
+  date,
+}) {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is missing from the root .env file");
+  }
+
+  const prompt = `
+You are helping a workplace social app suggest real event locations.
+
+Use live web search results to find suitable places for this event.
+Only suggest real places that appear to currently exist.
+Prefer official venue websites or well-known listing sources when possible.
+
+Return VALID JSON ONLY in this exact shape:
+{
+  "locations": [
+    {
+      "name": "string",
+      "address": "string",
+      "why_it_fits": "string",
+      "source_hint": "string"
+    }
+  ]
+}
+
+Rules:
+- give 3 to 5 suggestions
+- suggestions must be relevant to the activity
+- keep the wording concise
+- do not invent venues
+- if exact matches are limited, return the closest suitable real venues
+- source_hint should be a short plain-text source note like "official website" or "Google Maps listing"
+
+Event activity: ${activity || ""}
+Category: ${category || ""}
+Preferred city: ${city || ""}
+Event date: ${date || ""}
+`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt,
+    config: {
+      tools: [{ google_search: {} }], // changed: correct Gemini live web search tool name
+      responseMimeType: "application/json", // changed: asks for structured JSON output
+    },
+  });
+
+  const rawText =
+    typeof response.text === "function" ? response.text() : response.text || "";
+
+  const parsed = JSON.parse(rawText);
+
+  return parsed;
+}
+
 module.exports = {
   generateAiSuggestions,
   validateIdeaWithAi,
+  suggestEventLocationsWithAi, // changed: export new live location suggestion function
 };

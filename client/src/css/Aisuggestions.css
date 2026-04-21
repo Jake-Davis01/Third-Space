@@ -172,6 +172,7 @@
   border: none;
   transition: background-color 0.15s;
   margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 .aisuggestions__generateButton:hover {
