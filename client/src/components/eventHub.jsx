@@ -8,7 +8,8 @@ function EditModal({ event, onClose, onSave }) {
         title: event.title || "",
         description: event.description || "",
         event_date: event.event_date ? event.event_date.slice(0, 10) : "",
-        location: event.location || "",    });
+        location: event.location || "",
+    });
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState(null);
@@ -88,13 +89,14 @@ function EventHub() {
     const [editTarget, setEditTarget] = useState(null);
     const [confirmId, setConfirmId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         fetch(`${BASE}/events`)
             .then((r) => r.json())
             .then((data) => { setEvents(data); setLoading(false); })
             .catch(() => setLoading(false));
-    }, [loading, editTarget]);
+    }, [refreshKey]);
 
     async function handleDelete(id) {
         setDeletingId(id);
@@ -112,8 +114,8 @@ function EventHub() {
     function handleSave(updated) {
         setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
         setEditTarget(null);
+        setRefreshKey((prev) => prev + 1);
     }
-
 
     if (loading) return <p>Loading events…</p>;
 
