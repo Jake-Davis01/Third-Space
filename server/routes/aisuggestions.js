@@ -1,31 +1,20 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   createEvent,
   getPopularEvents,
   getSuggestionInsights,
   getAiSuggestions,
+  getInterestedCount,
   validateIdea,
 } = require("../controller/aisuggestions");
 
-console.log("Loaded aisuggestions routes");
-
-router.get("/events-test", (req, res) => {
-  res.json({ message: "aisuggestions route is working" });
-});
-
-router.get("/events/popular", getPopularEvents);
-router.get("/ai/insights/suggestions", getSuggestionInsights);
+router.post("/events", createEvent);
+router.get("/ai/popular-events", getPopularEvents);
+router.get("/ai/insights", getSuggestionInsights);
 router.get("/ai/suggestions", getAiSuggestions);
+router.get("/ai/interested-count", getInterestedCount);
 router.post("/ai/validate-idea", validateIdea);
-
-router.post(
-  "/events",
-  (req, res, next) => {
-    console.log("POST /api/events hit");
-    next();
-  },
-  createEvent
-);
 
 module.exports = router;

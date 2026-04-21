@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../css/Aisuggestions.css";
 
 function Aisuggestions() {
@@ -21,7 +21,8 @@ function Aisuggestions() {
   const [generatorInput, setGeneratorInput] = useState("");
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const [generatedIdea, setGeneratedIdea] = useState(null);
-  const [showGeneratorCancelConfirm, setShowGeneratorCancelConfirm] = useState(false);
+  const [showGeneratorCancelConfirm, setShowGeneratorCancelConfirm] =
+    useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
@@ -43,6 +44,182 @@ function Aisuggestions() {
     "Volunteering",
   ];
 
+  const descriptionLibrary = {
+    Running: [
+      "Swap screens for fresh air with a social run that keeps the pace light and the chats flowing.",
+      "An easygoing group run to boost energy, clear heads and help people connect naturally.",
+      "A feel-good run that turns movement into mingling without making it feel like forced networking.",
+    ],
+    Film: [
+      "A cinema-style social that gives everyone an easy reason to unwind and talk afterwards.",
+      "A relaxed film meetup built for shared laughs, strong opinions and post-credit chats.",
+      "An easy win for a social evening: one great film and plenty to talk about after.",
+    ],
+    "Board games": [
+      "A playful low-pressure social where teams can compete, laugh and mix beyond their usual circles.",
+      "A board game session that makes meeting new people feel easy, lively and genuinely fun.",
+      "An easy social pick: quick games, lots of laughs and no awkward small talk required.",
+    ],
+    Gaming: [
+      "A friendly gaming session that brings out teamwork, banter and a little healthy competition.",
+      "A fun multiplayer meetup for people who want something more lively than the usual social.",
+      "A game night built for relaxed competition, shared wins and easy conversation.",
+    ],
+    Cooking: [
+      "A hands-on social where people can learn something new while chatting over good food.",
+      "A cooking session that mixes teamwork, creativity and an easy excuse to eat well together.",
+      "A feel-good foodie event that gets people involved from the first chop to the last bite.",
+    ],
+    Hiking: [
+      "A scenic group walk that makes catching up and meeting new people feel effortless.",
+      "A social hike designed for fresh air, easy conversation and a proper reset from the desk.",
+      "A low-pressure outdoor meetup where the route gives the day its rhythm and energy.",
+    ],
+    Photography: [
+      "A creative photo walk that gives people something to do together from the first minute.",
+      "A relaxed photography meetup built around exploring, sharing ideas and spotting great shots.",
+      "A social with a creative twist that makes conversation flow as naturally as the route.",
+    ],
+    Reading: [
+      "A cosy reading social that gives book lovers an easy way to connect over fresh recommendations.",
+      "A calm, thoughtful meetup for people who enjoy quiet moments and lively book chat afterwards.",
+      "A bookish social that feels warm, welcoming and much more fun than another standard meeting.",
+    ],
+    Yoga: [
+      "A calming group session designed to help people reset, breathe and reconnect.",
+      "A wellness-focused social that keeps things gentle, friendly and easy to join.",
+      "A relaxed yoga meetup that blends movement, mindfulness and a bit of team bonding.",
+    ],
+    Cycling: [
+      "A social ride that keeps energy high and conversation easy from start to finish.",
+      "A refreshing cycling meetup that mixes movement, momentum and good company.",
+      "A team ride built for fresh air, shared pace and a welcome break from routine.",
+    ],
+    Music: [
+      "A music-led social that gives people a fun setting to relax, chat and enjoy the atmosphere.",
+      "A lively meetup where playlists, performances or shared favourites do the ice-breaking for you.",
+      "A feel-good music event designed to get people talking without forcing it.",
+    ],
+    Travel: [
+      "A travel-themed social where stories, ideas and future plans do all the heavy lifting.",
+      "A relaxed meetup for curious minds who love swapping recommendations and memorable travel moments.",
+      "A conversation-friendly event built around shared adventures and fresh inspiration.",
+    ],
+    Chess: [
+      "A thoughtful social with just enough competition to keep things interesting.",
+      "A chess meetup that creates easy one-to-one interactions without the usual awkwardness.",
+      "A smart, low-key event where strategy and conversation go hand in hand.",
+    ],
+    Volunteering: [
+      "A purpose-driven social that helps people connect while doing something genuinely worthwhile.",
+      "A feel-good team event that blends community impact with meaningful conversation.",
+      "A rewarding meetup where shared effort naturally turns into stronger team bonds.",
+    ],
+    default: [
+      "A fun social idea designed to help people connect in a more natural, low-pressure way.",
+      "A fresh event option that gives people an easy reason to join in and meet others.",
+      "A simple, social-first activity that turns shared interests into stronger connections.",
+    ],
+  };
+
+  const costRules = {
+    Running: { type: "perPerson", amount: 0 },
+    Film: { type: "perPerson", amount: 7.73 },
+    "Board games": { type: "perPerson", amount: 8.95 },
+    Gaming: { type: "perPerson", amount: 6.5 },
+    Cooking: { type: "perPerson", amount: 18 },
+    Hiking: { type: "perPerson", amount: 0 },
+    Photography: { type: "perPerson", amount: 0 },
+    Reading: { type: "perPerson", amount: 0 },
+    Yoga: { type: "perPerson", amount: 7 },
+    Cycling: { type: "perPerson", amount: 0 },
+    Music: { type: "perPerson", amount: 12 },
+    Travel: { type: "perPerson", amount: 0 },
+    Chess: { type: "perPerson", amount: 4 },
+    Volunteering: { type: "perPerson", amount: 0 },
+  };
+
+  const locationMultipliers = {
+    "Fully remote": 0,
+    London: 1.15,
+    Edinburgh: 1.08,
+    Manchester: 1.0,
+    Birmingham: 0.97,
+  };
+
+  const pickRandom = (items = []) => {
+    if (!Array.isArray(items) || items.length === 0) return "";
+    return items[Math.floor(Math.random() * items.length)];
+  };
+
+  const getEventCategory = (event) => {
+    if (event?.categories?.length > 0) return event.categories[0];
+    if (event?.category_name) return event.category_name;
+    return "default";
+  };
+
+  const getFunDescription = (event) => {
+    const category = getEventCategory(event);
+    return pickRandom(descriptionLibrary[category] || descriptionLibrary.default);
+  };
+
+  const estimateCost = (event) => {
+    const category = getEventCategory(event);
+    const interestedCount = Math.max(Number(event?.interested_count) || 0, 1);
+    const chosenLocation = event?.best_location || "Manchester";
+
+    const rule = costRules[category];
+
+    if (!rule) {
+      return {
+        label: "Cost: TBC",
+        total: null,
+      };
+    }
+
+    if (chosenLocation === "Fully remote") {
+      return {
+        label: "Cost: approx. £0 total",
+        total: 0,
+      };
+    }
+
+    const multiplier = locationMultipliers[chosenLocation] ?? 1;
+
+    let total = 0;
+
+    if (rule.type === "perPerson") {
+      total = rule.amount * interestedCount * multiplier;
+    }
+
+    const roundedTotal = Math.round(total);
+
+    return {
+      label: `Cost: approx. £${roundedTotal} total`,
+      total: roundedTotal,
+    };
+  };
+
+  const getVerdictClass = (value = "") => {
+    const normalised = value.toLowerCase();
+
+    if (normalised === "good idea") return "aisuggestions__statusGood";
+    if (normalised === "maybe") return "aisuggestions__statusMedium";
+    if (normalised === "not recommended") return "aisuggestions__statusBad";
+
+    return "aisuggestions__statusMedium";
+  };
+
+  const getConfidenceClass = (value = "") => {
+    const normalised = value.toLowerCase();
+
+    if (normalised === "high") return "aisuggestions__statusGood";
+    if (normalised === "medium") return "aisuggestions__statusMedium";
+    if (normalised === "low") return "aisuggestions__statusBad";
+
+    return "aisuggestions__statusMedium";
+  };
+
   useEffect(() => {
     const fetchAiSuggestions = async () => {
       try {
@@ -61,7 +238,11 @@ function Aisuggestions() {
         const combinedSuggestions = [
           ...(Array.isArray(data.topSuggestions) ? data.topSuggestions : []),
           ...(data.nicheSuggestion ? [data.nicheSuggestion] : []),
-        ];
+        ].map((event, index) => ({
+          ...event,
+          id: event.id || `${event.title}-${index}`,
+          fun_description: getFunDescription(event),
+        }));
 
         setPopularEvents(combinedSuggestions);
       } catch (err) {
@@ -141,7 +322,14 @@ function Aisuggestions() {
   const handleSubmit = async () => {
     console.log("SUBMIT CLICKED");
 
-    if (!editableTitle.trim() || !date || !location || categories.length === 0 || !primaryCategory || !message.trim()) {
+    if (
+      !editableTitle.trim() ||
+      !date ||
+      !location ||
+      categories.length === 0 ||
+      !primaryCategory ||
+      !message.trim()
+    ) {
       setShowErrorHint(true);
       setTimeout(() => setShowErrorHint(false), 1200);
       return;
@@ -323,6 +511,22 @@ function Aisuggestions() {
   const topSuggestions = popularEvents.slice(0, 3);
   const nicheSuggestion = popularEvents[3];
 
+  const selectedEventCostPreview = useMemo(() => {
+    if (!selectedEvent) return null;
+
+    const eventForEstimate = {
+      ...selectedEvent,
+      category_name:
+        primaryCategory || categories[0] || selectedEvent.category_name,
+      categories:
+        categories.length > 0 ? categories : selectedEvent.categories,
+      interested_count: Number(selectedEvent.interested_count) || 0,
+      best_location: location || "Manchester",
+    };
+
+    return estimateCost(eventForEstimate);
+  }, [selectedEvent, primaryCategory, categories, location]);
+
   return (
     <div className="aisuggestions__container">
       <div className="aisuggestions__header">
@@ -341,37 +545,51 @@ function Aisuggestions() {
           {isLoadingPopular ? (
             <p className="aisuggestions__cardText">Loading suggestions...</p>
           ) : topSuggestions.length > 0 ? (
-            topSuggestions.map((event, index) => (
-              <div className="aisuggestions__card" key={`${event.title}-${index}`}>
-                <div className="aisuggestions__cardHeader">
-                  <div className="aisuggestions__cardBody">
-                    <strong className="aisuggestions__cardTitle">{event.title}</strong>
-                    <p className="aisuggestions__cardText">
-                      {event.description} Cost: {event.estimated_cost}. Best location: {event.best_location}.
-                    </p>
+            topSuggestions.map((event, index) => {
+              const costInfo = estimateCost(event);
+
+              return (
+                <div
+                  className="aisuggestions__card"
+                  key={event.id || `${event.title}-${index}`}
+                >
+                  <div className="aisuggestions__cardHeader">
+                    <div className="aisuggestions__cardBody">
+                      <strong className="aisuggestions__cardTitle">
+                        {event.title}
+                      </strong>
+                      <p className="aisuggestions__cardText">
+                        {event.fun_description}
+                        <br />
+                        Interested members: {Number(event.interested_count) || 0} |{" "}
+                        {costInfo.label}
+                      </p>
+                    </div>
+                    <button
+                      className="aisuggestions__cardButton"
+                      onClick={() =>
+                        handleCreateClick(
+                          event.title,
+                          event.description,
+                          event.categories && event.categories.length > 0
+                            ? event.categories
+                            : event.category_name
+                            ? [event.category_name]
+                            : [],
+                          Number(event.interested_count) || 0
+                        )
+                      }
+                    >
+                      Create
+                    </button>
                   </div>
-                  <button
-                    className="aisuggestions__cardButton"
-                    onClick={() =>
-                      handleCreateClick(
-                        event.title,
-                        `${event.description} Cost: ${event.estimated_cost}. Best location: ${event.best_location}.`,
-                        event.categories && event.categories.length > 0
-                          ? event.categories
-                          : event.category_name
-                          ? [event.category_name]
-                          : [],
-                        Number(event.interested_count) || 0
-                      )
-                    }
-                  >
-                    Create
-                  </button>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
-            <p className="aisuggestions__cardText">No suggestions available yet.</p>
+            <p className="aisuggestions__cardText">
+              No suggestions available yet.
+            </p>
           )}
         </div>
       </div>
@@ -392,7 +610,10 @@ function Aisuggestions() {
                     {nicheSuggestion.title}
                   </strong>
                   <p className="aisuggestions__cardText">
-                    {nicheSuggestion.description} Cost: {nicheSuggestion.estimated_cost}. Best location: {nicheSuggestion.best_location}.
+                    {nicheSuggestion.fun_description}
+                    <br />
+                    Interested members: {Number(nicheSuggestion.interested_count) || 0} |{" "}
+                    {estimateCost(nicheSuggestion).label}
                   </p>
                 </div>
                 <button
@@ -400,8 +621,9 @@ function Aisuggestions() {
                   onClick={() =>
                     handleCreateClick(
                       nicheSuggestion.title,
-                      `${nicheSuggestion.description} Cost: ${nicheSuggestion.estimated_cost}. Best location: ${nicheSuggestion.best_location}.`,
-                      nicheSuggestion.categories && nicheSuggestion.categories.length > 0
+                      nicheSuggestion.description,
+                      nicheSuggestion.categories &&
+                        nicheSuggestion.categories.length > 0
                         ? nicheSuggestion.categories
                         : nicheSuggestion.category_name
                         ? [nicheSuggestion.category_name]
@@ -491,8 +713,16 @@ function Aisuggestions() {
                       {Number(generatedIdea.interested_count) || 0}
                     </p>
                     <p>
-                      <strong>Verdict:</strong> {generatedIdea.verdict} |{" "}
-                      <strong>Confidence:</strong> {generatedIdea.confidence}
+                      <strong>Verdict:</strong>{" "}
+                      <span className={getVerdictClass(generatedIdea.verdict)}>
+                        {generatedIdea.verdict}
+                      </span>{" "}
+                      | <strong>Confidence:</strong>{" "}
+                      <span
+                        className={getConfidenceClass(generatedIdea.confidence)}
+                      >
+                        {generatedIdea.confidence}
+                      </span>
                     </p>
 
                     <button
@@ -533,7 +763,9 @@ function Aisuggestions() {
               <>
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !editableTitle.trim() ? "aisuggestions__error" : ""
+                    showErrorHint && !editableTitle.trim()
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">Event Title</label>
@@ -557,6 +789,13 @@ function Aisuggestions() {
                   <strong>Interested Members:</strong>{" "}
                   {selectedEvent?.interested_count ?? 0}
                 </p>
+
+                {selectedEventCostPreview && (
+                  <p>
+                    <strong>Estimated Cost:</strong>{" "}
+                    {selectedEventCostPreview.label}
+                  </p>
+                )}
 
                 <div
                   className={`aisuggestions__formGroup ${
@@ -644,7 +883,9 @@ function Aisuggestions() {
 
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !primaryCategory ? "aisuggestions__error" : ""
+                    showErrorHint && !primaryCategory
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">
@@ -652,7 +893,8 @@ function Aisuggestions() {
                   </label>
 
                   <p className="aisuggestions__helperText">
-                    Choose the main category that should be saved in the events table.
+                    Choose the main category that should be saved in the events
+                    table.
                   </p>
 
                   <select
@@ -671,7 +913,9 @@ function Aisuggestions() {
 
                 <div
                   className={`aisuggestions__formGroup ${
-                    showErrorHint && !message.trim() ? "aisuggestions__error" : ""
+                    showErrorHint && !message.trim()
+                      ? "aisuggestions__error"
+                      : ""
                   }`}
                 >
                   <label className="aisuggestions__label">
