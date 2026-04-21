@@ -8,8 +8,8 @@ jest.mock("../../../../server/models/Dashboard", () => ({
   getUserGrowth: jest.fn()
 }));
 
-const dashboardModel = require("../../../../server/models/Dashboard");
-const { getDashboard } = require("../../../../server/controller/dashboard");
+const dashboardModel = require("../../../models/Dashboard");
+const { getDashboard } = require("../../../controller/dashboard");
 
 describe("getDashboard", () => {
   let req, res;

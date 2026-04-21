@@ -6,14 +6,14 @@ jest.mock("../../../../server/models/HomePageEvents", () => ({
   feedback: jest.fn(),
 }));
 
-const HomePageEvents = require("../../../../server/models/HomePageEvents");
+const HomePageEvents = require("../../../models/HomePageEvents");
 const {
   newUserEvent,
   joinEvent,
   nextEvent,
   recentPastEvent,
   feedback,
-} = require("../../../../server/controller/homeController");
+} = require("../../../controller/homeController");
 
 describe("Home Controller", () => {
   let req, res;
