@@ -16,7 +16,7 @@ function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
-    fetch("https://third-space-backend-sjay.onrender.com/api/dashboard")
+    fetch("http://localhost:3000/api/dashboard")
       .then((res) => res.json())
       .then((data) => setDashboard(data))
       .catch((err) => console.error("Dashboard fetch failed:", err));

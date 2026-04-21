@@ -3,10 +3,12 @@ import { useState, useEffect } from "react";
 
 function Events({ userEventEmail }) {
     const [events, setEvents] = useState([]);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState(null);
 
     async function fetchEvents() {
         const res = await fetch(
-            `https://third-space-backend-sjay.onrender.com/api/eventPage/userEvents/${userEventEmail}`,
+            `http://localhost:3000/api/eventPage/userEvents/${userEventEmail}`,
         );
         const data = await res.json();
         return data;
@@ -15,7 +17,7 @@ function Events({ userEventEmail }) {
     async function leaveEvent(eventID) {
         try {
             const res = await fetch(
-                "https://third-space-backend-sjay.onrender.com/api/eventPage/userEvents/",
+                "http://localhost:3000/api/eventPage/userEvents/",
                 {
                     method: "PATCH",
                     headers: {
@@ -36,6 +38,19 @@ function Events({ userEventEmail }) {
         } catch (err) {
             console.error("Error leaving event:", err);
         }
+    }
+
+    function confirmLeave() {
+        if (selectedEventId) {
+            leaveEvent(selectedEventId);
+        }
+        setShowConfirm(false);
+        setSelectedEventId(null);
+    }
+
+    function cancelLeave() {
+        setShowConfirm(false);
+        setSelectedEventId(null);
     }
 
     useEffect(() => {
@@ -65,13 +80,41 @@ function Events({ userEventEmail }) {
 
                             <button
                                 className="join-button"
-                                onClick={() => leaveEvent(event.id)}
+                                onClick={() => {
+                                    setSelectedEventId(event.id);
+                                    setShowConfirm(true);
+                                }}
                             >
                                 Leave Group
                             </button>
                         </div>
                     </div>
                 ))
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirm && (
+                <div className="modal-overlay">
+                    <div className="modal-box">
+                        <h2>Leave Group?</h2>
+                        <p>Are you sure you want to leave this event?</p>
+
+                        <div className="modal-actions">
+                            <button
+                                className="join-button"
+                                onClick={confirmLeave}
+                            >
+                                Yes, Leave
+                            </button>
+                            <button
+                                className="cancel-button"
+                                onClick={cancelLeave}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </section>
     );
