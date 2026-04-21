@@ -581,7 +581,7 @@ function Aisuggestions() {
 
   const handleSuggestLocations = async () => {
     try {
-      console.log("SUGGEST VENUES CLICKED"); // changed: confirm button click is firing
+      console.log("SUGGEST VENUES CLICKED");
       setIsLoadingLocationSuggestions(true);
       setSuggestedLocations([]);
       setSelectedVenue(null);
@@ -594,7 +594,7 @@ function Aisuggestions() {
         date,
       };
 
-      console.log("VENUE REQUEST PAYLOAD:", payload); // changed: confirm request body before fetch
+      console.log("VENUE REQUEST PAYLOAD:", payload);
 
       const response = await fetch(
         "http://localhost:3000/api/ai/suggest-locations",
@@ -607,10 +607,10 @@ function Aisuggestions() {
         }
       );
 
-      console.log("VENUE RESPONSE STATUS:", response.status); // changed: confirm response status
+      console.log("VENUE RESPONSE STATUS:", response.status);
 
       const data = await response.json();
-      console.log("VENUE RESPONSE DATA:", data); // changed: inspect returned data in browser console
+      console.log("VENUE RESPONSE DATA:", data);
 
       if (!response.ok) {
         throw new Error(
@@ -668,6 +668,13 @@ function Aisuggestions() {
     liveInterestedCount,
   ]);
 
+  const LoadingIndicator = ({ text = "Loading..." }) => (
+    <div className="aisuggestions__loadingWrap">
+      <div className="aisuggestions__spinner"></div>
+      <span>{text}</span>
+    </div>
+  );
+
   return (
     <div className="aisuggestions__container">
       <div className="aisuggestions__header">
@@ -684,7 +691,7 @@ function Aisuggestions() {
           <h3 className="aisuggestions__sectionTitle">Top Suggestions</h3>
 
           {isLoadingPopular ? (
-            <p className="aisuggestions__cardText">Loading suggestions...</p>
+            <LoadingIndicator text="Loading suggestions..." />
           ) : topSuggestions.length > 0 ? (
             topSuggestions.map((event, index) => {
               const costInfo = estimateCost(event);
@@ -742,7 +749,7 @@ function Aisuggestions() {
           </h3>
 
           {isLoadingPopular ? (
-            <p className="aisuggestions__cardText">Loading event...</p>
+            <LoadingIndicator text="Loading event..." />
           ) : nicheSuggestion ? (
             <div className="aisuggestions__nicheCard">
               <div className="aisuggestions__cardHeader">
@@ -842,7 +849,14 @@ function Aisuggestions() {
                   onClick={handleGenerateIdea}
                   disabled={isGenerating}
                 >
-                  {isGenerating ? "Generating..." : "Generate Idea"}
+                  {isGenerating ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Idea"
+                  )}
                 </button>
 
                 {generatedIdea && (
@@ -928,10 +942,15 @@ function Aisuggestions() {
 
                 <p>
                   <strong>Interested Members:</strong>{" "}
-                  {isLoadingInterestedCount
-                    ? "Updating..."
-                    : (liveInterestedCount ??
-                        (Number(selectedEvent?.interested_count) || 0))}
+                  {isLoadingInterestedCount ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Updating...
+                    </>
+                  ) : (
+                    liveInterestedCount ??
+                    (Number(selectedEvent?.interested_count) || 0)
+                  )}
                 </p>
 
                 {selectedEventCostPreview && (
@@ -996,9 +1015,14 @@ function Aisuggestions() {
                   onClick={handleSuggestLocations}
                   disabled={isLoadingLocationSuggestions}
                 >
-                  {isLoadingLocationSuggestions
-                    ? "Finding venue suggestions..."
-                    : "Suggest Real Venues"}
+                  {isLoadingLocationSuggestions ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Finding venue suggestions...
+                    </>
+                  ) : (
+                    "Suggest Real Venues"
+                  )}
                 </button>
 
                 {suggestedLocations.length > 0 && (
@@ -1184,7 +1208,14 @@ function Aisuggestions() {
                   onClick={handleSubmit}
                   disabled={!canSubmit}
                 >
-                  {isSubmitting ? "Saving..." : "Schedule Event"}
+                  {isSubmitting ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    "Schedule Event"
+                  )}
                 </button>
               </>
             ) : (
