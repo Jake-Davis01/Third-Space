@@ -225,7 +225,7 @@ function Aisuggestions() {
       try {
         setIsLoadingPopular(true);
 
-        const response = await fetch("http://localhost:3000/api/ai/suggestions");
+        const response = await fetch("https://third-space-backend-sjay.onrender.com/api/ai/suggestions");
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -345,7 +345,7 @@ function Aisuggestions() {
       console.log("primary category:", primaryCategory);
       console.log("all categories:", categories);
 
-      const response = await fetch("http://localhost:3000/api/events", {
+      const response = await fetch("https://third-space-backend-sjay.onrender.com/api/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -400,7 +400,7 @@ function Aisuggestions() {
       setIsGenerating(true);
       setGeneratedIdea(null);
 
-      const response = await fetch("http://localhost:3000/api/ai/validate-idea", {
+      const response = await fetch("https://third-space-backend-sjay.onrender.com/api/ai/validate-idea", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -442,7 +442,7 @@ function Aisuggestions() {
       setIsGenerating(true);
       setGeneratedIdea(null);
 
-      const response = await fetch("http://localhost:3000/api/ai/validate-idea", {
+      const response = await fetch("https://third-space-backend-sjay.onrender.com/api/ai/validate-idea", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
