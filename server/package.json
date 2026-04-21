@@ -3,19 +3,30 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage --verbose",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "setup-db": "node ./database/setup.js"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup/jest.setup.js"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^1.50.1",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "nodemon": "^3.1.14"
   }
 }

@@ -1,0 +1,48 @@
+#eventsPage {
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+.events-container {
+    border: 1.5px solid #e9d5ff;
+    border-radius: 14px;
+    padding: 1rem 2rem;
+    margin: 1.5rem;
+    background-color: #ffffff;
+}
+
+.events-container h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0B0033;
+    margin-bottom: 0.5rem;
+}
+
+.events-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.8rem;
+}
+
+.events-footer .date {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #9333ea;
+}
+
+.events-footer .join-button {
+    border-radius: 8px;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background-color: #0B0033;
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.15s;
+}
+
+.events-footer .join-button:hover {
+    background-color: #9333ea;
+}
