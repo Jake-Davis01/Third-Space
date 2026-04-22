@@ -24,6 +24,28 @@ function Home({ name, userEventEmail }) {
     const [upcomingEventDate, setUpcomingEventDate] = useState();
     const [upcomingEventDescription, setUpcomingEventDescription] = useState();
 
+    const extractEventTime = (description = "") => { // added: pull saved time out of description text
+        const match = description.match(/Event time:\s*([0-2]\d:[0-5]\d)/i);
+        return match ? match[1] : "";
+    };
+
+    const formatTimeLabel = (timeValue) => { // added: convert 24-hour time into friendly display format
+        if (!timeValue) return "";
+
+        const [hourString, minuteString] = timeValue.split(":");
+        const hour = Number(hourString);
+        const minute = Number(minuteString);
+
+        const suffix = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+        return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+    };
+
+    const cleanEventDescription = (description = "") => { // added: remove the embedded time line from the details text
+        return description.replace(/\n?\s*Event time:\s*[0-2]\d:[0-5]\d\s*/i, "").trim();
+    };
+
     // Load past event
     useEffect(() => {
         async function getPastEvent() {
@@ -66,6 +88,7 @@ function Home({ name, userEventEmail }) {
                 setRegistrationID(data.registration_id);
             } else {
                 setEventName(data);
+                setRegistrationID(null); // changed: clear stale event id if no new event exists
             }
         }
 
@@ -120,6 +143,9 @@ function Home({ name, userEventEmail }) {
         setRefresh((prev) => prev + 1);
     }
 
+    const eventTime = formatTimeLabel(extractEventTime(eventDescription)); // added: display-ready time for new event card
+    const upcomingEventTime = formatTimeLabel(extractEventTime(upcomingEventDescription)); // added: display-ready time for upcoming event card
+
     // 🔵 LOADER UI
     if (loading) {
         return (
@@ -143,10 +169,10 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{eventName}</h1>
                         <p className="date">
-                            Date: {eventDate} -- Location: {eventLocation}
+                            Date: {eventDate} {eventTime ? `-- Time: ${eventTime} ` : ""}-- Location: {eventLocation} {/* added: show event time when available */}
                         </p>
                         <p className="details">Details</p>
-                        <p>{eventDescription}</p>
+                        <p>{cleanEventDescription(eventDescription)}</p> {/* added: hide the raw embedded time line from details */}
                         <button className="join-button" onClick={joinEvent}>
                             Join
                         </button>
@@ -163,10 +189,10 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{upcomingEventName}</h1>
                         <p className="date">
-                            Date: {upcomingEventDate} -- Location: {upcomingEventLocation}
+                            Date: {upcomingEventDate} {upcomingEventTime ? `-- Time: ${upcomingEventTime} ` : ""}-- Location: {upcomingEventLocation} {/* added: show event time when available */}
                         </p>
                         <p className="details">Details</p>
-                        <p>{upcomingEventDescription}</p>
+                        <p>{cleanEventDescription(upcomingEventDescription)}</p> {/* added: hide the raw embedded time line from details */}
                     </div>
                 ) : (
                     <h1>{upcomingEventName}</h1>
