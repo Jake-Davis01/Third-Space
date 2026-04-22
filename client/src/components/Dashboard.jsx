@@ -76,40 +76,46 @@ function Dashboard() {
           </div>
         </div>
 
-        <div >
+        <div>
           {dashboard && <BarChart data={interestsData} title="Top Interests" />}
         </div>
 
         <div className="event-history">
-        <h2 className="section-title">Past Events</h2>
+          <h2 className="section-title">Past Events</h2>
 
-        <div className="event-item">
-          <h3 className="event-title">Sports Day</h3>
-          <div className="event-stats">
-            <span>⭐ 4.0</span>
-            <span>👥 80</span>
-            <span>📅 15/04/26</span>
+          <div className="past-events-table-wrap">
+            <table className="past-events-table">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Event Rating</th>
+                  <th>Attendance Rate</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Sports Day</td>
+                  <td>⭐ 4.0</td>
+                  <td>80 attendees</td>
+                  <td>15/04/26</td>
+                </tr>
+                <tr>
+                  <td>Bowling Day</td>
+                  <td>⭐ 4.5</td>
+                  <td>70 attendees</td>
+                  <td>21/03/26</td>
+                </tr>
+                <tr>
+                  <td>Chess Day</td>
+                  <td>⭐ 4.8</td>
+                  <td>59 attendees</td>
+                  <td>01/01/26</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-
-        <div className="event-item">
-          <h3 className="event-title">Bowling Day</h3>
-          <div className="event-stats">
-            <span>⭐ 4.5</span>
-            <span>👥 70</span>
-            <span>📅 21/03/26</span>
-          </div>
-        </div>
-
-        <div className="event-item">
-          <h3 className="event-title">Chess Day</h3>
-          <div className="event-stats">
-            <span>⭐ 4.8</span>
-            <span>👥 59</span>
-            <span>📅 01/01/26</span>
-          </div>
-        </div>
-      </div>
 
         <p className="dashboard-section-title">Further Breakdown</p>
         <div className="line-chart-container">

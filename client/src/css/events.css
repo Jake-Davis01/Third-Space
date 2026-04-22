@@ -1,23 +1,43 @@
+/* colour system */
+:root {
+    --primary: #9333ea;
+    --primary-dark: #7c22ce;
+    --deep-text: #0B0033;
+    --border-soft: #e9d5ff;
+    --hover-bg: #faf5ff;
+    --white: #ffffff;
+    --shadow-soft: 0 8px 20px rgba(11, 0, 51, 0.08);
+}
+
 #eventsPage {
     background-color: #ffffff;
     min-height: 100vh;
 }
 
+/* event cards */
 .events-container {
-    border: 1.5px solid #e9d5ff;
+    border: 1.5px solid var(--border-soft);
     border-radius: 14px;
     padding: 1rem 2rem;
     margin: 1.5rem;
-    background-color: #ffffff;
+    background-color: var(--white);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.events-container:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: #d8b4fe;
 }
 
 .events-container h1 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #0B0033;
+    color: var(--deep-text);
     margin-bottom: 0.5rem;
 }
 
+/* footer */
 .events-footer {
     display: flex;
     justify-content: space-between;
@@ -28,23 +48,25 @@
 .events-footer .date {
     font-size: 0.9rem;
     font-style: italic;
-    color: #9333ea;
+    color: var(--primary);
 }
 
+/* button */
 .events-footer .join-button {
     border-radius: 8px;
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
     cursor: pointer;
-    background-color: #0B0033;
+    background-color: var(--deep-text);
     color: #ffffff;
     border: none;
     font-weight: 600;
-    transition: background-color 0.15s;
+    transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .events-footer .join-button:hover {
-    background-color: #9333ea;
+    background-color: var(--primary);
+    transform: translateY(-1px);
 }
 
 /* modal overlay */
@@ -63,23 +85,24 @@
 
 /* modal box */
 .modal-box {
-    background-color: #ffffff;
-    border: 1.5px solid #e9d5ff;
+    background-color: var(--white);
+    border: 1.5px solid var(--border-soft);
     border-radius: 14px;
     padding: 1.5rem 2rem;
     width: 320px;
     text-align: center;
+    box-shadow: 0 12px 30px rgba(11, 0, 51, 0.12);
 }
 
 /* modal title */
 .modal-box h2 {
-    color: #0B0033;
+    color: var(--deep-text);
     margin-bottom: 0.5rem;
 }
 
 /* modal text */
 .modal-box p {
-    color: #9333ea;
+    color: var(--primary);
     font-size: 0.9rem;
     margin-bottom: 1rem;
 }
@@ -97,17 +120,18 @@
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
     cursor: pointer;
-    background-color: #e9d5ff;
-    color: #0B0033;
+    background-color: var(--border-soft);
+    color: var(--deep-text);
     border: none;
     font-weight: 600;
+    transition: background-color 0.15s ease;
 }
 
 .cancel-button:hover {
     background-color: #d8b4fe;
 }
 
-.middlesec{
+.middlesec {
     justify-content: center;
     margin: 0 auto;
     max-width: 1200px;
