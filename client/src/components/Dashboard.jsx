@@ -80,21 +80,36 @@ function Dashboard() {
           {dashboard && <BarChart data={interestsData} title="Top Interests" />}
         </div>
 
-        <div className="pastevents-box">
-          <h2 className="dashboard-section-title">Past Events</h2>
-          <div className="chartbox">
-            <p><strong>Sports Day</strong></p>
-            <p>Avg Score: 4.0 &nbsp;|&nbsp; Attended: 80 &nbsp;|&nbsp; Date: 15/04/26</p>
-          </div>
-          <div className="chartbox">
-            <p><strong>Bowling Day</strong></p>
-            <p>Avg Score: 4.5 &nbsp;|&nbsp; Attended: 70 &nbsp;|&nbsp; Date: 21/03/26</p>
-          </div>
-          <div className="chartbox">
-            <p><strong>Chess Day</strong></p>
-            <p>Avg Score: 4.8 &nbsp;|&nbsp; Attended: 59 &nbsp;|&nbsp; Date: 01/01/26</p>
+        <div className="event-history">
+        <h2 className="section-title">Past Events</h2>
+
+        <div className="event-item">
+          <h3 className="event-title">Sports Day</h3>
+          <div className="event-stats">
+            <span>⭐ 4.0</span>
+            <span>👥 80</span>
+            <span>📅 15/04/26</span>
           </div>
         </div>
+
+        <div className="event-item">
+          <h3 className="event-title">Bowling Day</h3>
+          <div className="event-stats">
+            <span>⭐ 4.5</span>
+            <span>👥 70</span>
+            <span>📅 21/03/26</span>
+          </div>
+        </div>
+
+        <div className="event-item">
+          <h3 className="event-title">Chess Day</h3>
+          <div className="event-stats">
+            <span>⭐ 4.8</span>
+            <span>👥 59</span>
+            <span>📅 01/01/26</span>
+          </div>
+        </div>
+      </div>
 
         <p className="dashboard-section-title">Further Breakdown</p>
         <div className="line-chart-container">

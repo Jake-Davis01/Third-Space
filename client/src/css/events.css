@@ -106,3 +106,9 @@
 .cancel-button:hover {
     background-color: #d8b4fe;
 }
+
+.middlesec{
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 1200px;
+}
