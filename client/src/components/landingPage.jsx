@@ -21,7 +21,7 @@ function LandingPage({ setIsEO, setName, setUserEventEmail }) {
     async function checkDetails() {
         //call the database to see if user acount exists
         const userAccountDetails = await fetch(
-            "http://localhost:3000/api/auth/login",
+            "https://third-space-backend-sjay.onrender.com/api/auth/login",
             {
                 method: "POST",
                 headers: {

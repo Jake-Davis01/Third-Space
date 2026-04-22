@@ -675,7 +675,7 @@ function Aisuggestions() {
       console.log("VENUE REQUEST PAYLOAD:", payload);
 
       const response = await fetch(
-        "http://localhost:3000/api/ai/suggest-locations",
+        "https://third-space-backend-sjay.onrender.com/api/ai/suggest-locations",
         {
           method: "POST",
           headers: {

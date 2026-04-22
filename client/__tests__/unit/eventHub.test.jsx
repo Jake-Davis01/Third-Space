@@ -117,7 +117,7 @@ describe("EventHub", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "http://localhost:3000/api/events/1",
+                "https://third-space-backend-sjay.onrender.com/api/events/1",
                 { method: "DELETE" }
             );
         });
@@ -179,7 +179,7 @@ describe("EventHub", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "http://localhost:3000/api/events/1",
+                "https://third-space-backend-sjay.onrender.com/api/events/1",
                 expect.objectContaining({ method: "PATCH" })
             );
         });

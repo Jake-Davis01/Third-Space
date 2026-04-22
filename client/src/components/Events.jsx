@@ -8,7 +8,7 @@ function Events({ userEventEmail }) {
 
     async function fetchEvents() {
         const res = await fetch(
-            `http://localhost:3000/api/eventPage/userEvents/${userEventEmail}`,
+            `https://third-space-backend-sjay.onrender.com/api/eventPage/userEvents/${userEventEmail}`,
         );
         const data = await res.json();
         return data;
@@ -17,7 +17,7 @@ function Events({ userEventEmail }) {
     async function leaveEvent(eventID) {
         try {
             const res = await fetch(
-                "http://localhost:3000/api/eventPage/userEvents/",
+                "https://third-space-backend-sjay.onrender.com/api/eventPage/userEvents/",
                 {
                     method: "PATCH",
                     headers: {

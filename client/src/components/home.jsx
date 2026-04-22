@@ -53,7 +53,7 @@ function Home({ name, userEventEmail }) {
     useEffect(() => {
         async function getPastEvent() {
             const pastEvent = await fetch(
-                `http://localhost:3000/api/home/pastEvent/${userEventEmail}`,
+                `https://third-space-backend-sjay.onrender.com/api/home/pastEvent/${userEventEmail}`,
             );
             const data = await pastEvent.json();
             setPastEventTitle(data.title || data);
@@ -79,7 +79,7 @@ function Home({ name, userEventEmail }) {
 
         async function newEvent() {
             const res = await fetch(
-                `http://localhost:3000/api/home/newEvent/${userEventEmail}`,
+                `https://third-space-backend-sjay.onrender.com/api/home/newEvent/${userEventEmail}`,
             );
             const data = await res.json();
 
@@ -97,7 +97,7 @@ function Home({ name, userEventEmail }) {
 
         async function nextEvent() {
             const res = await fetch(
-                `http://localhost:3000/api/home/nextEvent/${userEventEmail}`,
+                `https://third-space-backend-sjay.onrender.com/api/home/nextEvent/${userEventEmail}`,
             );
             const data = await res.json();
 
@@ -121,7 +121,7 @@ function Home({ name, userEventEmail }) {
         setRating(starValue);
 
         const updateReview = await fetch(
-            `http://localhost:3000/api/home/pastEvent/`,
+            `https://third-space-backend-sjay.onrender.com/api/home/pastEvent/`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -149,7 +149,7 @@ function Home({ name, userEventEmail }) {
 
     async function joinEvent() {
         const updateAttendance = await fetch(
-            `http://localhost:3000/api/home/newEvent/${registrationID}`,
+            `https://third-space-backend-sjay.onrender.com/api/home/newEvent/${registrationID}`,
             {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
