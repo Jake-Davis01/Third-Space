@@ -33,6 +33,7 @@ function Aisuggestions() {
   const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] =
     useState(false);
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [noBudgetRequired, setNoBudgetRequired] = useState(false); // added: let the organiser mark the event as free, self-funded, or not needing company budget
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -132,28 +133,28 @@ function Aisuggestions() {
   };
 
   const costRules = {
-    Running: { type: "perPerson", amount: 0 },
-    Film: { type: "perPerson", amount: 7.73 },
-    "Board games": { type: "perPerson", amount: 8.95 },
-    Gaming: { type: "perPerson", amount: 6.5 },
-    Cooking: { type: "perPerson", amount: 18 },
-    Hiking: { type: "perPerson", amount: 0 },
-    Photography: { type: "perPerson", amount: 0 },
-    Reading: { type: "perPerson", amount: 0 },
-    Yoga: { type: "perPerson", amount: 7 },
-    Cycling: { type: "perPerson", amount: 0 },
-    Music: { type: "perPerson", amount: 12 },
-    Travel: { type: "perPerson", amount: 0 },
-    Chess: { type: "perPerson", amount: 4 },
-    Volunteering: { type: "perPerson", amount: 0 },
+    Running: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 3 },
+    Film: { type: "perPerson", minPerPerson: 9, maxPerPerson: 18 }, // added: use a realistic range rather than one fixed figure
+    "Board games": { type: "perPerson", minPerPerson: 4, maxPerPerson: 12 }, // added: allow for table fees, snacks, or venue spend
+    Gaming: { type: "perPerson", minPerPerson: 5, maxPerPerson: 14 }, // added: allow for arcade, console lounge, or booking costs
+    Cooking: { type: "perPerson", minPerPerson: 18, maxPerPerson: 40 }, // added: ingredients and workshop pricing vary a lot
+    Hiking: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 5 },
+    Photography: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 5 },
+    Reading: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 4 },
+    Yoga: { type: "perPerson", minPerPerson: 8, maxPerPerson: 18 }, // added: studio and instructor costs vary by city
+    Cycling: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 6 },
+    Music: { type: "perPerson", minPerPerson: 10, maxPerPerson: 30 }, // added: live music, karaoke, and venue minimums vary widely
+    Travel: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 8 },
+    Chess: { type: "perPerson", minPerPerson: 0, maxPerPerson: 8 },
+    Volunteering: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 4 },
   };
 
   const locationMultipliers = {
     "Fully remote": 0,
-    London: 1.15,
-    Edinburgh: 1.08,
+    London: 1.3, // added: london typically carries higher event costs
+    Edinburgh: 1.12,
     Manchester: 1.0,
-    Birmingham: 0.97,
+    Birmingham: 0.96,
   };
 
   const generateTimeOptions = () => {
@@ -202,6 +203,15 @@ function Aisuggestions() {
   };
 
   const estimateCost = (event) => {
+    if (noBudgetRequired) {
+      return {
+        label: "No organiser budget needed", // added: clearer label for free, self-funded, or zero-budget plans
+        total: 0,
+        minTotal: 0,
+        maxTotal: 0,
+      };
+    }
+
     const category = getEventCategory(event);
     const interestedCount = Math.max(Number(event?.interested_count) || 0, 1);
     const chosenLocation = event?.best_location || "Manchester";
@@ -210,31 +220,42 @@ function Aisuggestions() {
 
     if (!rule) {
       return {
-        label: "Cost: TBC",
+        label: "Estimated cost: varies",
         total: null,
+        minTotal: null,
+        maxTotal: null,
       };
     }
 
     if (chosenLocation === "Fully remote") {
       return {
-        label: "Cost: approx. £0 total",
+        label: "Estimated cost: little to no organiser spend",
         total: 0,
+        minTotal: 0,
+        maxTotal: 0,
       };
     }
 
     const multiplier = locationMultipliers[chosenLocation] ?? 1;
 
-    let total = 0;
+    const minTotal = Math.round(rule.minPerPerson * interestedCount * multiplier); // added: lower end of the cost range
+    const maxTotal = Math.round(rule.maxPerPerson * interestedCount * multiplier); // added: upper end of the cost range
+    const averageTotal = Math.round((minTotal + maxTotal) / 2);
 
-    if (rule.type === "perPerson") {
-      total = rule.amount * interestedCount * multiplier;
+    if (minTotal === 0 && maxTotal === 0) {
+      return {
+        label: "Estimated cost: likely free or very low-cost",
+        total: 0,
+        minTotal: 0,
+        maxTotal: 0,
+      };
     }
 
-    const roundedTotal = Math.round(total);
-
     return {
-      label: `Cost: approx. £${roundedTotal} total`,
-      total: roundedTotal,
+      label: `Estimated cost: £${minTotal}–£${maxTotal}`, // added: present pricing as a range instead of a single number
+      total: averageTotal,
+      minTotal,
+      maxTotal,
     };
   };
 
@@ -351,6 +372,7 @@ function Aisuggestions() {
     setSuggestedLocations([]);
     setIsLoadingLocationSuggestions(false);
     setSelectedVenue(null);
+    setNoBudgetRequired(false); // added: reset the budget toggle when the modal closes
   };
 
   const resetGeneratorState = () => {
@@ -364,9 +386,17 @@ function Aisuggestions() {
     title,
     description,
     defaultCategories = [],
-    interestedCount = 0
+    interestedCount = 0,
+    bestLocation = ""
   ) => {
-    setSelectedEvent({ title, description, interested_count: interestedCount });
+    setSelectedEvent({
+      title,
+      description,
+      interested_count: interestedCount,
+      categories: defaultCategories,
+      category_name: defaultCategories[0] || "",
+      best_location: bestLocation, // added: preserve the suggestion's original location so card and popup pricing stay aligned
+    });
     setEditableTitle(title);
     setDate("");
     setTime("");
@@ -377,6 +407,7 @@ function Aisuggestions() {
     setLiveInterestedCount(Number(interestedCount) || 0);
     setSuggestedLocations([]);
     setSelectedVenue(null);
+    setNoBudgetRequired(false); // added: start each scheduling flow with the normal budget estimate enabled
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -426,7 +457,7 @@ function Aisuggestions() {
         : selectedVenue?.booking_url
         ? `Booking link: ${selectedVenue.booking_url}`
         : "",
-    ].filter(Boolean);
+    ].filter(Boolean); // added: budget metadata is intentionally not included so it does not show on the employee home page
 
     if (metadataLines.length === 0) {
       return baseMessage;
@@ -607,6 +638,9 @@ function Aisuggestions() {
       title: ideaToUse?.title || generatorInput,
       description: ideaToUse?.description || "",
       interested_count: Number(ideaToUse?.interested_count) || 0,
+      categories: ideaToUse?.categories || [],
+      category_name: ideaToUse?.categories?.[0] || "",
+      best_location: "", // added: generated ideas do not yet have a locked suggested location
     });
     setEditableTitle(ideaToUse?.title || generatorInput);
     setDate("");
@@ -618,6 +652,7 @@ function Aisuggestions() {
     setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0);
     setSuggestedLocations([]);
     setSelectedVenue(null);
+    setNoBudgetRequired(false); // added: reset the free/self-funded toggle when using a generated idea
     setShowModal(true);
     setSubmitError("");
   };
@@ -699,7 +734,8 @@ function Aisuggestions() {
         categories.length > 0 ? categories : selectedEvent.categories,
       interested_count:
         liveInterestedCount ?? (Number(selectedEvent?.interested_count) || 0),
-      best_location: location || "Manchester",
+      best_location:
+        location || selectedEvent?.best_location || "Manchester", // added: keep popup pricing aligned with the card until the organiser chooses a different location
     };
 
     return estimateCost(eventForEstimate);
@@ -709,6 +745,7 @@ function Aisuggestions() {
     categories,
     location,
     liveInterestedCount,
+    noBudgetRequired, // added: update the preview immediately when the no-budget toggle changes
   ]);
 
   const LoadingIndicator = ({ text = "Loading..." }) => (
@@ -767,7 +804,8 @@ function Aisuggestions() {
                             : event.category_name
                             ? [event.category_name]
                             : [],
-                          Number(event.interested_count) || 0
+                          Number(event.interested_count) || 0,
+                          event.best_location // added: keep the original suggestion location when opening the popup
                         )
                       }
                     >
@@ -819,7 +857,8 @@ function Aisuggestions() {
                         : nicheSuggestion.category_name
                         ? [nicheSuggestion.category_name]
                         : [],
-                      Number(nicheSuggestion.interested_count) || 0
+                      Number(nicheSuggestion.interested_count) || 0,
+                      nicheSuggestion.best_location // added: keep the original niche suggestion location when opening the popup
                     )
                   }
                 >
@@ -1002,6 +1041,33 @@ function Aisuggestions() {
                     {selectedEventCostPreview.label}
                   </p>
                 )}
+
+                <div className="aisuggestions__formGroup">
+                  <label className="aisuggestions__label">
+                    Budget Handling
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Tick this if the event is free, self-funded, or does not need an organiser budget.
+                  </p>
+
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      fontSize: "0.95rem",
+                      color: "#0B0033",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={noBudgetRequired}
+                      onChange={(e) => setNoBudgetRequired(e.target.checked)} // added: let the organiser override the estimate when no company budget is needed
+                    />
+                    No organiser budget needed
+                  </label>
+                </div>
 
                 <div
                   className={`aisuggestions__formGroup ${
