@@ -141,3 +141,9 @@
 .profile-btn:hover {
     background-color: #9333ea;
 }
+
+.middlesec{
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 1200px;
+}

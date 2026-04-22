@@ -42,6 +42,7 @@ function EditModal({ event, onClose, onSave }) {
     }
 
     return (
+        <div className="middlesec">
         <div className="modal-backdrop" onClick={handleBackdrop}>
             <div className="modal">
                 <div className="modal-header">
@@ -79,6 +80,7 @@ function EditModal({ event, onClose, onSave }) {
                     </button>
                 </div>
             </div>
+        </div>
         </div>
     );
 }
@@ -120,6 +122,10 @@ function EventHub() {
     if (loading) return <p>Loading events…</p>;
 
     return (
+        <div className="middlesec">
+        <div className="welcome-user container">
+            <h1>Events Hub</h1>
+        </div>
         <section>
             {events.length === 0 ? (
                 <div className="events-container">
@@ -174,6 +180,7 @@ function EventHub() {
                 />
             )}
         </section>
+        </div>
     );
 }
 

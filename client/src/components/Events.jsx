@@ -58,6 +58,7 @@ function Events({ userEventEmail }) {
     }, [userEventEmail]);
 
     return (
+        <div className="middlesec">
         <section>
             <div className="welcome-user container">
                 <h1>Your Events</h1>
@@ -117,6 +118,7 @@ function Events({ userEventEmail }) {
                 </div>
             )}
         </section>
+        </div>
     );
 }
 

@@ -150,3 +150,46 @@
   margin: 0 auto;
   justify-content: center;
 }
+
+.event-history {
+    width: 100%;
+    max-width: 750px;
+    margin: 2rem auto;
+}
+
+.section-title {
+    margin-bottom: 1rem;
+    color: #0B0033;
+}
+
+.event-item {
+    background: #faf5ff;
+    border: 1.5px solid #e9d5ff;
+    border-left: 5px solid #9333ea;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+
+    width: 100%;        /* 👈 THIS makes it wider */
+    max-width: 1000px; /* keeps a nice cap */
+
+    transition: 0.2s ease;
+}
+
+.event-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    
+}
+
+.event-title {
+    margin: 0 0 0.5rem 0;
+    color: #0B0033;
+}
+
+.event-stats {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.95rem;
+    color: #555;
+}
