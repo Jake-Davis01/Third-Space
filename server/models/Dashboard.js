@@ -45,7 +45,7 @@ const getRegistrationPercent = () => {
   return db.query(`
     SELECT 
       ROUND(
-        COUNT(DISTINCT user_email)::numeric / 500 * 100
+        COUNT(DISTINCT user_email)::numeric / 250 * 100
       ) AS percent
     FROM event_registrations;
   `);
