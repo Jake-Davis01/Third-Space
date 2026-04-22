@@ -72,8 +72,7 @@ class HomePageEvents {
 
     static async recentPastEvent(userEmail) {
         const query = `
-    WITH latest_event AS (
-        SELECT 
+            SELECT 
             e.id AS event_id,
             e.title, 
             e.event_date, 
@@ -81,19 +80,16 @@ class HomePageEvents {
         FROM event_registrations er
         JOIN events e ON er.event_id = e.id
         WHERE er.user_email = $1
-          AND er.status = 'attended'
-          AND e.event_date < CURRENT_DATE
+        AND er.status = 'attended'
+        AND e.event_date < CURRENT_DATE
+        AND NOT EXISTS (
+            SELECT 1
+            FROM feedback f
+            WHERE f.user_email = $1
+                AND f.event_id = e.id
+        )
         ORDER BY e.event_date DESC
-        LIMIT 1
-    )
-    SELECT *
-    FROM latest_event le
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM feedback f
-        WHERE f.user_email = $1
-          AND f.event_id = le.event_id
-    );
+        LIMIT 1;
     `;
 
         const result = await db.query(query, [userEmail]);
