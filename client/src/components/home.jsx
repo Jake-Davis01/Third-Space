@@ -24,11 +24,33 @@ function Home({ name, userEventEmail }) {
     const [upcomingEventDate, setUpcomingEventDate] = useState();
     const [upcomingEventDescription, setUpcomingEventDescription] = useState();
 
+    const extractEventTime = (description = "") => { // added: pull saved time out of description text
+        const match = description.match(/Event time:\s*([0-2]\d:[0-5]\d)/i);
+        return match ? match[1] : "";
+    };
+
+    const formatTimeLabel = (timeValue) => { // added: convert 24-hour time into friendly display format
+        if (!timeValue) return "";
+
+        const [hourString, minuteString] = timeValue.split(":");
+        const hour = Number(hourString);
+        const minute = Number(minuteString);
+
+        const suffix = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+        return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+    };
+
+    const cleanEventDescription = (description = "") => { // added: remove the embedded time line from the details text
+        return description.replace(/\n?\s*Event time:\s*[0-2]\d:[0-5]\d\s*/i, "").trim();
+    };
+
     // Load past event
     useEffect(() => {
         async function getPastEvent() {
             const pastEvent = await fetch(
-                `https://third-space-backend-sjay.onrender.com/api/home/pastEvent/${userEventEmail}`,
+                `http://localhost:3000/api/home/pastEvent/${userEventEmail}`, // changed: use the same local backend as Aisuggestions.jsx
             );
             const data = await pastEvent.json();
             setPastEventTitle(data.title || data);
@@ -54,7 +76,7 @@ function Home({ name, userEventEmail }) {
 
         async function newEvent() {
             const res = await fetch(
-                `https://third-space-backend-sjay.onrender.com/api/home/newEvent/${userEventEmail}`,
+                `http://localhost:3000/api/home/newEvent/${userEventEmail}`, // changed: use the same local backend as Aisuggestions.jsx
             );
             const data = await res.json();
 
@@ -66,12 +88,13 @@ function Home({ name, userEventEmail }) {
                 setRegistrationID(data.registration_id);
             } else {
                 setEventName(data);
+                setRegistrationID(null); // changed: clear stale event id if no new event exists
             }
         }
 
         async function nextEvent() {
             const res = await fetch(
-                `https://third-space-backend-sjay.onrender.com/api/home/nextEvent/${userEventEmail}`,
+                `http://localhost:3000/api/home/nextEvent/${userEventEmail}`, // changed: use the same local backend as Aisuggestions.jsx
             );
             const data = await res.json();
 
@@ -95,7 +118,7 @@ function Home({ name, userEventEmail }) {
         setRating(starValue);
 
         const updateReview = await fetch(
-            `https://third-space-backend-sjay.onrender.com/api/home/pastEvent/`,
+            `http://localhost:3000/api/home/pastEvent/`, // changed: use the same local backend as Aisuggestions.jsx
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -113,12 +136,22 @@ function Home({ name, userEventEmail }) {
 
     async function joinEvent() {
         const updateAttendance = await fetch(
-            `https://third-space-backend-sjay.onrender.com/api/home/newEvent/${registrationID}`,
-            { method: "PATCH" },
-        );
+            `http://localhost:3000/api/home/newEvent/${registrationID}`, // changed: use the same local backend as Aisuggestions.jsx
+            {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: userEventEmail,
+                }),
+            },
+        ); // changed: send the user's email because joining now creates a new registration row
+
         console.log(updateAttendance);
         setRefresh((prev) => prev + 1);
     }
+
+    const eventTime = formatTimeLabel(extractEventTime(eventDescription)); // added: display-ready time for new event card
+    const upcomingEventTime = formatTimeLabel(extractEventTime(upcomingEventDescription)); // added: display-ready time for upcoming event card
 
     // 🔵 LOADER UI
     if (loading) {
@@ -143,10 +176,10 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{eventName}</h1>
                         <p className="date">
-                            Date: {eventDate} -- Location: {eventLocation}
+                            Date: {eventDate} {eventTime ? `-- Time: ${eventTime} ` : ""}-- Location: {eventLocation} {/* added: show event time when available */}
                         </p>
                         <p className="details">Details</p>
-                        <p>{eventDescription}</p>
+                        <p>{cleanEventDescription(eventDescription)}</p> {/* added: hide the raw embedded time line from details */}
                         <button className="join-button" onClick={joinEvent}>
                             Join
                         </button>
@@ -163,10 +196,10 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{upcomingEventName}</h1>
                         <p className="date">
-                            Date: {upcomingEventDate} -- Location: {upcomingEventLocation}
+                            Date: {upcomingEventDate} {upcomingEventTime ? `-- Time: ${upcomingEventTime} ` : ""}-- Location: {upcomingEventLocation} {/* added: show event time when available */}
                         </p>
                         <p className="details">Details</p>
-                        <p>{upcomingEventDescription}</p>
+                        <p>{cleanEventDescription(upcomingEventDescription)}</p> {/* added: hide the raw embedded time line from details */}
                     </div>
                 ) : (
                     <h1>{upcomingEventName}</h1>

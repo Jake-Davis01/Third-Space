@@ -19,7 +19,7 @@ const aisuggestionsRoutes = require("./routes/aisuggestions");
 
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRouter);
-app.use("/api", aisuggestionsRoutes);
+app.use("/api", aisuggestionsRoutes); // so /api/ai/suggest-locations is reachable
 app.use("/api/home", homeRouter);
 app.use("/api/eventPage", eventPageRouter);
 

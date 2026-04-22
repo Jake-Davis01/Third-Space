@@ -80,15 +80,22 @@
 .picture-side {
     background-color: #0B0033;
     width: 57%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
 }
 
 .landingLogo {
     height: 250px; 
 }
-.picture-side {
-    background-color: #0B0033;
-    width: 57%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
+.landingSlogan {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: 0.04em;
 }

@@ -87,8 +87,8 @@ function LandingPage({ setIsEO, setName, setUserEventEmail }) {
                 </div>
             </div>
             <div className="picture-side"> 
-            <img src="/third_space_logo.png" alt="Logo" className="landingLogo"/>
-
+                <img src="/third_space_logo.gif" alt="Logo" className="landingLogo" />
+                <p className="landingSlogan">Insights that find their place</p>
             </div>
         </div>
     );

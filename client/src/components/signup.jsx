@@ -178,7 +178,10 @@ function SignUp() {
                 </p>
             </div>
 
-            <div className="signup-right"></div>
+            <div className="signup-right">
+                <img src="/third_space_logo.gif" alt="Logo" className="signupLogo" /> {/* added logo */}
+                <p className="signupSlogan">Insights that find their place</p> {/* added slogan */}
+            </div>
         </section>
     );
 }
