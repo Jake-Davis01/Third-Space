@@ -78,7 +78,7 @@ describe('SignUp component', () => {
     })
   })
 
-  test('navigates to /home on successful registration', async () => {
+  test('navigates to / on successful registration', async () => {
     global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ message: 'success' })
@@ -87,7 +87,7 @@ describe('SignUp component', () => {
     fillValidForm()
     fireEvent.click(screen.getByRole('button', { name: /create account/i }))
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/home')
+      expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
 

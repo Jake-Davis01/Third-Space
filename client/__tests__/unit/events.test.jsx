@@ -45,18 +45,20 @@ describe('Events component', () => {
       expect(screen.getAllByRole('button', { name: /leave group/i })).toHaveLength(2)
     })
   })
-
-  test('removes event from list after leaving', async () => {
+test('removes event from list after leaving', async () => {
     global.fetch
       .mockResolvedValueOnce({ json: async () => mockEvents })
       .mockResolvedValueOnce({ json: async () => ({ success: true }) })
     render(<Events userEventEmail="john@test.com" />)
     await waitFor(() => screen.getByText(/yoga class/i))
     fireEvent.click(screen.getAllByRole('button', { name: /leave group/i })[0])
+    // confirm the modal
+    await waitFor(() => screen.getByRole('button', { name: /yes, leave/i }))
+    fireEvent.click(screen.getByRole('button', { name: /yes, leave/i }))
     await waitFor(() => {
       expect(screen.queryByText(/yoga class/i)).not.toBeInTheDocument()
     })
-  })
+})
 
   test('renders your events heading', async () => {
     global.fetch.mockResolvedValueOnce({ json: async () => [] })
