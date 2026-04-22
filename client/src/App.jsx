@@ -16,15 +16,20 @@ import SignUp from "./components/signup";
 import LandingPage from "./components/landingPage";
 import Profile from "./components/profile";
 import Events from "./components/Events";
-import EventHub from "./components/eventHub"
+import EventHub from "./components/eventHub";
+import Footer from "./components/Footer"; // added: footer so we can link to user guide without cluttering navbar
+import UserGuide from "./components/UserGuide"; // added: user guide page for end-user documentation
 
 // Layout component that includes the NavBar
-    const WithNav = ({ isEO }) => (
-        <>
-            <NavBar isEO={isEO} />
+const WithNav = ({ isEO }) => (
+    <div className="appContainer"> {/* added wrapper for full height layout */}
+        <NavBar isEO={isEO} />
+        <div className="pageContent"> {/* added: content area grows so footer stays at bottom */}
             <Outlet />
-        </>
-    );
+        </div>
+        <Footer /> {/* added: footer appears on all main pages and contains link to user guide */}
+    </div>
+);
 
 function App() {
     //for the event organiser. If the person logging is is an EO, this will be updated to true
@@ -47,6 +52,7 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/aisuggestions" element={<Aisuggestions />} />
                     <Route path="/eventHub" element={<EventHub />} />
+                    <Route path="/guide" element={<UserGuide />} /> {/* added: guide now uses navbar and footer too */}
                 </Route>
             </Routes>
         </Router>

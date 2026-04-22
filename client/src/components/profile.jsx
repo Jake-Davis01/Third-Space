@@ -73,9 +73,13 @@ function Profile() {
     if (loading) return <p>Loading profile...</p>
 
     return (
+        <div className="middlesec">
+            <div className="welcome-user container">
+                <h1>Your Profile</h1>
+            </div>
         <div className="profile-section">
 
-            <h1 className="profile-title">Your Profile</h1>
+            
 
             <div className="profile-block">
                 <h2>Your Details</h2>
@@ -155,6 +159,7 @@ function Profile() {
                 {saved ? "Saved!" : "Save changes"}
             </button>
 
+        </div>
         </div>
     )
 }
