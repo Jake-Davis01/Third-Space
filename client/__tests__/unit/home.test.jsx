@@ -173,4 +173,54 @@ test('hovering over a star updates hover state', async () => {
   fireEvent.mouseLeave(stars[0])
   expect(stars[0].className).not.toContain('active')
 })
+
+test('shows event time when description contains time', async () => {
+    mockFetch(
+        { title: 'Yoga Class', location: 'London', event_date: '2025-01-01', description: 'Fun yoga\n\nEvent time: 14:30', registration_id: 1 },
+        { title: 'Chess Club', location: 'Manchester', event_date: '2025-02-01', description: 'Play chess\n\nEvent time: 09:00' },
+        { title: 'Past Event', event_id: 1 }
+    )
+    render(<Home {...defaultProps} />)
+    await waitFor(() => {
+        expect(screen.getByText(/2:30 PM/i)).toBeInTheDocument()
+    })
+})
+
+test('shows AM time correctly', async () => {
+    mockFetch(
+        { title: 'Yoga Class', location: 'London', event_date: '2025-01-01', description: 'Fun yoga\n\nEvent time: 09:00', registration_id: 1 },
+        { title: 'Chess Club', location: 'Manchester', event_date: '2025-02-01', description: 'Play chess' },
+        { title: 'Past Event', event_id: 1 }
+    )
+    render(<Home {...defaultProps} />)
+    await waitFor(() => {
+        expect(screen.getByText(/9:00 AM/i)).toBeInTheDocument()
+    })
+})
+
+test('shows midnight as 12:00 AM', async () => {
+    mockFetch(
+        { title: 'Yoga Class', location: 'London', event_date: '2025-01-01', description: 'Fun yoga\n\nEvent time: 00:00', registration_id: 1 },
+        { title: 'Chess Club', location: 'Manchester', event_date: '2025-02-01', description: 'Play chess' },
+        { title: 'Past Event', event_id: 1 }
+    )
+    render(<Home {...defaultProps} />)
+    await waitFor(() => {
+        expect(screen.getByText(/12:00 AM/i)).toBeInTheDocument()
+    })
+})
+
+test('clears registration ID when no new events', async () => {
+    mockFetch(
+        'No New Events!',
+        'No Upcoming Events!',
+        'No Past Events To Review!'
+    )
+    render(<Home {...defaultProps} />)
+    await waitFor(() => {
+        expect(screen.getByText(/no new events/i)).toBeInTheDocument()
+    })
+    // join button should not exist since registrationID is null
+    expect(screen.queryByRole('button', { name: /join/i })).not.toBeInTheDocument()
+})
 })
