@@ -1,0 +1,48 @@
+/* footer container */
+.footer {
+  margin-top: 40px;
+  padding: 16px;
+  text-align: center;
+  border-top: 1.5px solid var(--border-soft);
+  background-color: var(--white);
+  color: var(--deep-text);
+  font-size: 0.9rem;
+}
+
+/* link wrapper (optional but keeps spacing neat) */
+.footerLinks {
+  margin-top: 6px;
+}
+
+/* user guide link */
+.footerLinks a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+/* hover effect */
+.footerLinks a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+
+/* make the whole app take full screen height */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+/* main app wrapper */
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* this makes content push footer down */
+.pageContent {
+  flex: 1;
+}
