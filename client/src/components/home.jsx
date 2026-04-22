@@ -176,6 +176,7 @@ function Home({ name, userEventEmail }) {
     }
 
     return (
+        <div className="middlesec">
         <section>
             <div className="welcome-user container">
                 <h1>Welcome Back {name}</h1>
@@ -266,6 +267,7 @@ function Home({ name, userEventEmail }) {
                 </div>
             )}
         </section>
+        </div>
     );
 }
 

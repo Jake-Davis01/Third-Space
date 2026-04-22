@@ -243,4 +243,22 @@ describe("EventHub", () => {
             expect(screen.queryByText("Loading events…")).not.toBeInTheDocument();
         });
     });
+
+    it("handles delete fetch error ", async () => {
+    global.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: async () => mockEvents })
+        .mockRejectedValueOnce(new Error("Network error"))
+        .mockResolvedValue({ ok: true, json: async () => mockEvents });
+
+    render(<EventHub />);
+    await waitFor(() => screen.getAllByText("Delete Event"));
+    fireEvent.click(screen.getAllByText("Delete Event")[0]);
+    fireEvent.click(screen.getByText("Yes, delete"));
+
+    await waitFor(() => {
+        // both events should still be there since delete failed
+        expect(screen.getByText("Morning Running Club")).toBeInTheDocument();
+        expect(screen.getByText("Film Night Social")).toBeInTheDocument();
+    });
+});
 });
