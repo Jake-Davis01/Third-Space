@@ -68,7 +68,7 @@ function SignUp() {
             if (!response.ok) throw new Error(data.error || "Registration failed");
 
             localStorage.setItem("userEmail", formData.email);
-            navigate("/home");
+            navigate("/");
         } catch (err) {
             setError(err.message);
         }
