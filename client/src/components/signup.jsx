@@ -68,7 +68,7 @@ function SignUp() {
             if (!response.ok) throw new Error(data.error || "Registration failed");
 
             localStorage.setItem("userEmail", formData.email);
-            navigate("/home");
+            navigate("/");
         } catch (err) {
             setError(err.message);
         }
@@ -179,7 +179,7 @@ function SignUp() {
             </div>
 
             <div className="signup-right">
-                <img src="/third_space_logo.gif" alt="Logo" className="signupLogo" /> {/* added logo */}
+                <img src="/third_space_logoo.gif" alt="Logo" className="signupLogo" /> {/* added logo */}
                 <p className="signupSlogan">Insights that find their place</p> {/* added slogan */}
             </div>
         </section>

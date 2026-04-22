@@ -24,12 +24,15 @@ function Home({ name, userEventEmail }) {
     const [upcomingEventDate, setUpcomingEventDate] = useState();
     const [upcomingEventDescription, setUpcomingEventDescription] = useState();
 
-    const extractEventTime = (description = "") => { // added: pull saved time out of description text
+    // thank you for feedback popup state
+    const [showThankYou, setShowThankYou] = useState(false);
+
+    const extractEventTime = (description = "") => {
         const match = description.match(/Event time:\s*([0-2]\d:[0-5]\d)/i);
         return match ? match[1] : "";
     };
 
-    const formatTimeLabel = (timeValue) => { // added: convert 24-hour time into friendly display format
+    const formatTimeLabel = (timeValue) => {
         if (!timeValue) return "";
 
         const [hourString, minuteString] = timeValue.split(":");
@@ -42,7 +45,7 @@ function Home({ name, userEventEmail }) {
         return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
     };
 
-    const cleanEventDescription = (description = "") => { // added: remove the embedded time line from the details text
+    const cleanEventDescription = (description = "") => {
         return description.replace(/\n?\s*Event time:\s*[0-2]\d:[0-5]\d\s*/i, "").trim();
     };
 
@@ -60,7 +63,7 @@ function Home({ name, userEventEmail }) {
         if (userEventEmail) {
             getPastEvent();
         }
-    }, [userEventEmail]);
+    }, [userEventEmail, refresh]); // ✅ include refresh so it clears after feedback
 
     // Load new + upcoming events
     useEffect(() => {
@@ -88,7 +91,7 @@ function Home({ name, userEventEmail }) {
                 setRegistrationID(data.registration_id);
             } else {
                 setEventName(data);
-                setRegistrationID(null); // changed: clear stale event id if no new event exists
+                setRegistrationID(null);
             }
         }
 
@@ -132,11 +135,21 @@ function Home({ name, userEventEmail }) {
 
         const data = await updateReview.json();
         console.log(data);
+
+        // show popup
+        setShowThankYou(true);
+    }
+
+    // close popup + refresh
+    function closeThankYou() {
+        setShowThankYou(false);
+        setRefresh((prev) => prev + 1);
+        setRating(0);
     }
 
     async function joinEvent() {
         const updateAttendance = await fetch(
-            `http://localhost:3000/api/home/newEvent/${registrationID}`, // changed: use the same local backend as Aisuggestions.jsx
+            `https://third-space-backend-sjay.onrender.com/api/home/newEvent/${registrationID}`,
             {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -144,16 +157,15 @@ function Home({ name, userEventEmail }) {
                     email: userEventEmail,
                 }),
             },
-        ); // changed: send the user's email because joining now creates a new registration row
+        );
 
         console.log(updateAttendance);
         setRefresh((prev) => prev + 1);
     }
 
-    const eventTime = formatTimeLabel(extractEventTime(eventDescription)); // added: display-ready time for new event card
-    const upcomingEventTime = formatTimeLabel(extractEventTime(upcomingEventDescription)); // added: display-ready time for upcoming event card
+    const eventTime = formatTimeLabel(extractEventTime(eventDescription));
+    const upcomingEventTime = formatTimeLabel(extractEventTime(upcomingEventDescription));
 
-    // 🔵 LOADER UI
     if (loading) {
         return (
             <div className="loader-container">
@@ -169,6 +181,7 @@ function Home({ name, userEventEmail }) {
                 <h1>Welcome Back {name}</h1>
             </div>
 
+            {/* NEW EVENTS */}
             <div className="container">
                 <h2>New For You</h2>
 
@@ -176,10 +189,10 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{eventName}</h1>
                         <p className="date">
-                            Date: {eventDate} {eventTime ? `-- Time: ${eventTime} ` : ""}-- Location: {eventLocation} {/* added: show event time when available */}
+                            Date: {eventDate} {eventTime ? `-- Time: ${eventTime} ` : ""}-- Location: {eventLocation}
                         </p>
                         <p className="details">Details</p>
-                        <p>{cleanEventDescription(eventDescription)}</p> {/* added: hide the raw embedded time line from details */}
+                        <p>{cleanEventDescription(eventDescription)}</p>
                         <button className="join-button" onClick={joinEvent}>
                             Join
                         </button>
@@ -189,6 +202,7 @@ function Home({ name, userEventEmail }) {
                 )}
             </div>
 
+            {/* UPCOMING EVENTS */}
             <div className="container">
                 <h2>Upcoming Events</h2>
 
@@ -196,16 +210,17 @@ function Home({ name, userEventEmail }) {
                     <div className="inner-container">
                         <h1>{upcomingEventName}</h1>
                         <p className="date">
-                            Date: {upcomingEventDate} {upcomingEventTime ? `-- Time: ${upcomingEventTime} ` : ""}-- Location: {upcomingEventLocation} {/* added: show event time when available */}
+                            Date: {upcomingEventDate} {upcomingEventTime ? `-- Time: ${upcomingEventTime} ` : ""}-- Location: {upcomingEventLocation}
                         </p>
                         <p className="details">Details</p>
-                        <p>{cleanEventDescription(upcomingEventDescription)}</p> {/* added: hide the raw embedded time line from details */}
+                        <p>{cleanEventDescription(upcomingEventDescription)}</p>
                     </div>
                 ) : (
                     <h1>{upcomingEventName}</h1>
                 )}
             </div>
 
+            {/* FEEDBACK */}
             <div className="container">
                 <h2>Feedback</h2>
                 <h1 className="pastEventHeading">{pastEventTitle}</h1>
@@ -231,6 +246,25 @@ function Home({ name, userEventEmail }) {
                     </div>
                 ) : null}
             </div>
+
+            {/* THANK FOR FEEDBACK YOU MODAL */}
+            {showThankYou && (
+                <div className="modal-overlay">
+                    <div className="modal-box">
+                        <h2>Thank You!</h2>
+                        <p>Your feedback has been submitted.</p>
+
+                        <div className="modal-actions center">
+                            <button
+                                className="join-button"
+                                onClick={closeThankYou}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

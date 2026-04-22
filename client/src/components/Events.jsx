@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 
 function Events({ userEventEmail }) {
     const [events, setEvents] = useState([]);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState(null);
 
     async function fetchEvents() {
         const res = await fetch(
@@ -38,6 +40,19 @@ function Events({ userEventEmail }) {
         }
     }
 
+    function confirmLeave() {
+        if (selectedEventId) {
+            leaveEvent(selectedEventId);
+        }
+        setShowConfirm(false);
+        setSelectedEventId(null);
+    }
+
+    function cancelLeave() {
+        setShowConfirm(false);
+        setSelectedEventId(null);
+    }
+
     useEffect(() => {
         fetchEvents().then((data) => setEvents(data));
     }, [userEventEmail]);
@@ -65,13 +80,41 @@ function Events({ userEventEmail }) {
 
                             <button
                                 className="join-button"
-                                onClick={() => leaveEvent(event.id)}
+                                onClick={() => {
+                                    setSelectedEventId(event.id);
+                                    setShowConfirm(true);
+                                }}
                             >
                                 Leave Group
                             </button>
                         </div>
                     </div>
                 ))
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirm && (
+                <div className="modal-overlay">
+                    <div className="modal-box">
+                        <h2>Leave Group?</h2>
+                        <p>Are you sure you want to leave this event?</p>
+
+                        <div className="modal-actions">
+                            <button
+                                className="join-button"
+                                onClick={confirmLeave}
+                            >
+                                Yes, Leave
+                            </button>
+                            <button
+                                className="cancel-button"
+                                onClick={cancelLeave}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </section>
     );

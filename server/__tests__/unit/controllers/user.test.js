@@ -4,8 +4,8 @@ jest.mock("../../../../server/models/User", () => ({
   update: jest.fn(),
 }));
 
-const User = require("../../../../server/models/User");
-const { register, login, updateProfile, getProfile } = require("../../../../server/controller/user");
+const User = require("../../../models/User");
+const { register, login, updateProfile, getProfile } = require("../../../controller/user");
 
 describe("User Controller", () => {
   let req, res;
