@@ -24,7 +24,7 @@ function Home({ name, userEventEmail }) {
     const [upcomingEventDate, setUpcomingEventDate] = useState();
     const [upcomingEventDescription, setUpcomingEventDescription] = useState();
 
-    // ✅ NEW: thank you popup state
+    // thank you for feedback popup state
     const [showThankYou, setShowThankYou] = useState(false);
 
     const extractEventTime = (description = "") => {
@@ -136,11 +136,11 @@ function Home({ name, userEventEmail }) {
         const data = await updateReview.json();
         console.log(data);
 
-        // ✅ show popup
+        // show popup
         setShowThankYou(true);
     }
 
-    // ✅ NEW: close popup + refresh
+    // close popup + refresh
     function closeThankYou() {
         setShowThankYou(false);
         setRefresh((prev) => prev + 1);
@@ -247,7 +247,7 @@ function Home({ name, userEventEmail }) {
                 ) : null}
             </div>
 
-            {/* ✅ THANK YOU MODAL */}
+            {/* THANK FOR FEEDBACK YOU MODAL */}
             {showThankYou && (
                 <div className="modal-overlay">
                     <div className="modal-box">
