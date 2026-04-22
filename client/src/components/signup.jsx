@@ -54,7 +54,7 @@ function SignUp() {
         }
 
         try {
-            const response = await fetch("https://third-space-backend-sjay.onrender.com/api/auth/register", {
+            const response = await fetch("http://localhost:3000/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -68,7 +68,7 @@ function SignUp() {
             if (!response.ok) throw new Error(data.error || "Registration failed");
 
             localStorage.setItem("userEmail", formData.email);
-            navigate("/home");
+            navigate("/");
         } catch (err) {
             setError(err.message);
         }
@@ -178,7 +178,10 @@ function SignUp() {
                 </p>
             </div>
 
-            <div className="signup-right"></div>
+            <div className="signup-right">
+                <img src="/third_space_logoo.gif" alt="Logo" className="signupLogo" /> {/* added logo */}
+                <p className="signupSlogan">Insights that find their place</p> {/* added slogan */}
+            </div>
         </section>
     );
 }

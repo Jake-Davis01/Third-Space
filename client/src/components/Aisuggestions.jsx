@@ -6,6 +6,7 @@ function Aisuggestions() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editableTitle, setEditableTitle] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
   const [primaryCategory, setPrimaryCategory] = useState("");
@@ -25,9 +26,14 @@ function Aisuggestions() {
     useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const [liveInterestedCount, setLiveInterestedCount] = useState(null); // changed: added live interested count state
+  const [liveInterestedCount, setLiveInterestedCount] = useState(null);
   const [isLoadingInterestedCount, setIsLoadingInterestedCount] =
-    useState(false); // changed: added loading state for live interested count
+    useState(false);
+  const [suggestedLocations, setSuggestedLocations] = useState([]);
+  const [isLoadingLocationSuggestions, setIsLoadingLocationSuggestions] =
+    useState(false);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [noBudgetRequired, setNoBudgetRequired] = useState(false); // added: let the organiser mark the event as free, self-funded, or not needing company budget
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -127,28 +133,57 @@ function Aisuggestions() {
   };
 
   const costRules = {
-    Running: { type: "perPerson", amount: 0 },
-    Film: { type: "perPerson", amount: 7.73 },
-    "Board games": { type: "perPerson", amount: 8.95 },
-    Gaming: { type: "perPerson", amount: 6.5 },
-    Cooking: { type: "perPerson", amount: 18 },
-    Hiking: { type: "perPerson", amount: 0 },
-    Photography: { type: "perPerson", amount: 0 },
-    Reading: { type: "perPerson", amount: 0 },
-    Yoga: { type: "perPerson", amount: 7 },
-    Cycling: { type: "perPerson", amount: 0 },
-    Music: { type: "perPerson", amount: 12 },
-    Travel: { type: "perPerson", amount: 0 },
-    Chess: { type: "perPerson", amount: 4 },
-    Volunteering: { type: "perPerson", amount: 0 },
+    Running: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 3 },
+    Film: { type: "perPerson", minPerPerson: 9, maxPerPerson: 18 }, // added: use a realistic range rather than one fixed figure
+    "Board games": { type: "perPerson", minPerPerson: 4, maxPerPerson: 12 }, // added: allow for table fees, snacks, or venue spend
+    Gaming: { type: "perPerson", minPerPerson: 5, maxPerPerson: 14 }, // added: allow for arcade, console lounge, or booking costs
+    Cooking: { type: "perPerson", minPerPerson: 18, maxPerPerson: 40 }, // added: ingredients and workshop pricing vary a lot
+    Hiking: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 5 },
+    Photography: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 5 },
+    Reading: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 4 },
+    Yoga: { type: "perPerson", minPerPerson: 8, maxPerPerson: 18 }, // added: studio and instructor costs vary by city
+    Cycling: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 6 },
+    Music: { type: "perPerson", minPerPerson: 10, maxPerPerson: 30 }, // added: live music, karaoke, and venue minimums vary widely
+    Travel: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 8 },
+    Chess: { type: "perPerson", minPerPerson: 0, maxPerPerson: 8 },
+    Volunteering: { type: "mostlyFree", minPerPerson: 0, maxPerPerson: 4 },
   };
 
   const locationMultipliers = {
     "Fully remote": 0,
-    London: 1.15,
-    Edinburgh: 1.08,
+    London: 1.3, // added: london typically carries higher event costs
+    Edinburgh: 1.12,
     Manchester: 1.0,
-    Birmingham: 0.97,
+    Birmingham: 0.96,
+  };
+
+  const generateTimeOptions = () => {
+    const options = [];
+
+    for (let hour = 8; hour <= 20; hour += 1) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const hh = String(hour).padStart(2, "0");
+        const mm = String(minute).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  const formatTimeLabel = (timeValue) => {
+    if (!timeValue) return "";
+
+    const [hourString, minuteString] = timeValue.split(":");
+    const hour = Number(hourString);
+    const minute = Number(minuteString);
+
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+    return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
   };
 
   const pickRandom = (items = []) => {
@@ -168,6 +203,15 @@ function Aisuggestions() {
   };
 
   const estimateCost = (event) => {
+    if (noBudgetRequired) {
+      return {
+        label: "No organiser budget needed", // added: clearer label for free, self-funded, or zero-budget plans
+        total: 0,
+        minTotal: 0,
+        maxTotal: 0,
+      };
+    }
+
     const category = getEventCategory(event);
     const interestedCount = Math.max(Number(event?.interested_count) || 0, 1);
     const chosenLocation = event?.best_location || "Manchester";
@@ -176,31 +220,42 @@ function Aisuggestions() {
 
     if (!rule) {
       return {
-        label: "Cost: TBC",
+        label: "Estimated cost: varies",
         total: null,
+        minTotal: null,
+        maxTotal: null,
       };
     }
 
     if (chosenLocation === "Fully remote") {
       return {
-        label: "Cost: approx. £0 total",
+        label: "Estimated cost: little to no organiser spend",
         total: 0,
+        minTotal: 0,
+        maxTotal: 0,
       };
     }
 
     const multiplier = locationMultipliers[chosenLocation] ?? 1;
 
-    let total = 0;
+    const minTotal = Math.round(rule.minPerPerson * interestedCount * multiplier); // added: lower end of the cost range
+    const maxTotal = Math.round(rule.maxPerPerson * interestedCount * multiplier); // added: upper end of the cost range
+    const averageTotal = Math.round((minTotal + maxTotal) / 2);
 
-    if (rule.type === "perPerson") {
-      total = rule.amount * interestedCount * multiplier;
+    if (minTotal === 0 && maxTotal === 0) {
+      return {
+        label: "Estimated cost: likely free or very low-cost",
+        total: 0,
+        minTotal: 0,
+        maxTotal: 0,
+      };
     }
 
-    const roundedTotal = Math.round(total);
-
     return {
-      label: `Cost: approx. £${roundedTotal} total`,
-      total: roundedTotal,
+      label: `Estimated cost: £${minTotal}–£${maxTotal}`, // added: present pricing as a range instead of a single number
+      total: averageTotal,
+      minTotal,
+      maxTotal,
     };
   };
 
@@ -262,15 +317,15 @@ function Aisuggestions() {
 
   useEffect(() => {
     const fetchInterestedCount = async () => {
-      if (!showModal) return; // changed: only run when modal is open
+      if (!showModal) return;
 
       if (!primaryCategory || !location) {
-        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0); // changed: fallback to original count before full selection
+        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0);
         return;
       }
 
       try {
-        setIsLoadingInterestedCount(true); // changed: show loading while count updates
+        setIsLoadingInterestedCount(true);
 
         const params = new URLSearchParams({
           category_name: primaryCategory,
@@ -287,22 +342,23 @@ function Aisuggestions() {
         }
 
         const data = await response.json();
-        setLiveInterestedCount(Number(data.interested_count) || 0); // changed: store location-based count
+        setLiveInterestedCount(Number(data.interested_count) || 0);
       } catch (err) {
         console.error("Error fetching interested count:", err);
-        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0); // changed: fallback if request fails
+        setLiveInterestedCount(Number(selectedEvent?.interested_count) || 0);
       } finally {
-        setIsLoadingInterestedCount(false); // changed: stop loading
+        setIsLoadingInterestedCount(false);
       }
     };
 
     fetchInterestedCount();
-  }, [showModal, primaryCategory, location, selectedEvent]); // changed: refetch when category/location changes
+  }, [showModal, primaryCategory, location, selectedEvent]);
 
   const resetModalState = () => {
     setSelectedEvent(null);
     setEditableTitle("");
     setDate("");
+    setTime("");
     setLocation("");
     setCategories([]);
     setPrimaryCategory("");
@@ -311,8 +367,12 @@ function Aisuggestions() {
     setShowErrorHint(false);
     setSubmitError("");
     setIsSubmitting(false);
-    setLiveInterestedCount(null); // changed: reset live count
-    setIsLoadingInterestedCount(false); // changed: reset loading state
+    setLiveInterestedCount(null);
+    setIsLoadingInterestedCount(false);
+    setSuggestedLocations([]);
+    setIsLoadingLocationSuggestions(false);
+    setSelectedVenue(null);
+    setNoBudgetRequired(false); // added: reset the budget toggle when the modal closes
   };
 
   const resetGeneratorState = () => {
@@ -326,13 +386,28 @@ function Aisuggestions() {
     title,
     description,
     defaultCategories = [],
-    interestedCount = 0
+    interestedCount = 0,
+    bestLocation = ""
   ) => {
-    setSelectedEvent({ title, description, interested_count: interestedCount });
+    setSelectedEvent({
+      title,
+      description,
+      interested_count: interestedCount,
+      categories: defaultCategories,
+      category_name: defaultCategories[0] || "",
+      best_location: bestLocation, // added: preserve the suggestion's original location so card and popup pricing stay aligned
+    });
     setEditableTitle(title);
+    setDate("");
+    setTime("");
+    setLocation("");
+    setMessage("");
     setCategories(defaultCategories);
     setPrimaryCategory(defaultCategories[0] || "");
-    setLiveInterestedCount(Number(interestedCount) || 0); // changed: initialise popup interested count
+    setLiveInterestedCount(Number(interestedCount) || 0);
+    setSuggestedLocations([]);
+    setSelectedVenue(null);
+    setNoBudgetRequired(false); // added: start each scheduling flow with the normal budget estimate enabled
     setShowModal(true);
     setShowCancelConfirm(false);
     setShowErrorHint(false);
@@ -358,16 +433,37 @@ function Aisuggestions() {
       setCategories(updatedCategories);
 
       if (primaryCategory === category) {
-        setPrimaryCategory(updatedCategories[0] || ""); // changed: switch primary to another selected category if possible
+        setPrimaryCategory(updatedCategories[0] || "");
       }
     } else {
       const updatedCategories = [...categories, category];
       setCategories(updatedCategories);
 
       if (!primaryCategory) {
-        setPrimaryCategory(category); // changed: auto-set primary category when first category is chosen
+        setPrimaryCategory(category);
       }
     }
+  };
+
+  const buildFinalEmployeeMessage = () => {
+    const baseMessage = message.trim();
+
+    const metadataLines = [
+      time ? `Event time: ${time}` : "",
+      selectedVenue ? `Venue: ${selectedVenue.name}` : "",
+      selectedVenue?.address ? `Address: ${selectedVenue.address}` : "",
+      selectedVenue?.requires_booking === false
+        ? "Booking: no advance booking is usually needed."
+        : selectedVenue?.booking_url
+        ? `Booking link: ${selectedVenue.booking_url}`
+        : "",
+    ].filter(Boolean); // added: budget metadata is intentionally not included so it does not show on the employee home page
+
+    if (metadataLines.length === 0) {
+      return baseMessage;
+    }
+
+    return `${baseMessage}\n\n${metadataLines.join("\n")}`;
   };
 
   const handleSubmit = async () => {
@@ -376,6 +472,7 @@ function Aisuggestions() {
     if (
       !editableTitle.trim() ||
       !date ||
+      !time ||
       !location ||
       categories.length === 0 ||
       !primaryCategory ||
@@ -395,6 +492,7 @@ function Aisuggestions() {
       console.log("userEmail:", userEmail);
       console.log("primary category:", primaryCategory);
       console.log("all categories:", categories);
+      console.log("selected time:", time);
 
       const response = await fetch("https://third-space-backend-sjay.onrender.com/api/events", {
         method: "POST",
@@ -403,8 +501,9 @@ function Aisuggestions() {
         },
         body: JSON.stringify({
           title: editableTitle.trim(),
-          description: selectedEvent.description,
+          description: buildFinalEmployeeMessage(),
           event_date: date,
+          event_time: time,
           location,
           primary_category_name: primaryCategory,
           categories,
@@ -437,6 +536,7 @@ function Aisuggestions() {
   const canSubmit =
     editableTitle.trim() &&
     date &&
+    time &&
     location &&
     categories.length > 0 &&
     primaryCategory &&
@@ -538,13 +638,73 @@ function Aisuggestions() {
       title: ideaToUse?.title || generatorInput,
       description: ideaToUse?.description || "",
       interested_count: Number(ideaToUse?.interested_count) || 0,
+      categories: ideaToUse?.categories || [],
+      category_name: ideaToUse?.categories?.[0] || "",
+      best_location: "", // added: generated ideas do not yet have a locked suggested location
     });
     setEditableTitle(ideaToUse?.title || generatorInput);
+    setDate("");
+    setTime("");
+    setLocation("");
+    setMessage("");
     setCategories(ideaToUse?.categories || []);
     setPrimaryCategory(ideaToUse?.categories?.[0] || "");
-    setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0); // changed: initialise popup interested count for generated idea
+    setLiveInterestedCount(Number(ideaToUse?.interested_count) || 0);
+    setSuggestedLocations([]);
+    setSelectedVenue(null);
+    setNoBudgetRequired(false); // added: reset the free/self-funded toggle when using a generated idea
     setShowModal(true);
     setSubmitError("");
+  };
+
+  const handleSuggestLocations = async () => {
+    try {
+      console.log("SUGGEST VENUES CLICKED");
+      setIsLoadingLocationSuggestions(true);
+      setSuggestedLocations([]);
+      setSelectedVenue(null);
+
+      const payload = {
+        activity: editableTitle,
+        category: primaryCategory || categories[0] || "",
+        city:
+          location && location !== "Fully remote" ? location : "Manchester",
+        date,
+      };
+
+      console.log("VENUE REQUEST PAYLOAD:", payload);
+
+      const response = await fetch(
+        "http://localhost:3000/api/ai/suggest-locations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      console.log("VENUE RESPONSE STATUS:", response.status);
+
+      const data = await response.json();
+      console.log("VENUE RESPONSE DATA:", data);
+
+      if (!response.ok) {
+        throw new Error(
+          `Request failed: ${response.status} ${JSON.stringify(data)}`
+        );
+      }
+
+      setSuggestedLocations(
+        Array.isArray(data.locations) ? data.locations : []
+      );
+    } catch (err) {
+      console.error("Error suggesting locations:", err);
+      setSuggestedLocations([]);
+    } finally {
+      setIsLoadingLocationSuggestions(false);
+    }
   };
 
   const closeGeneratorConfirm = () => {
@@ -573,8 +733,9 @@ function Aisuggestions() {
       categories:
         categories.length > 0 ? categories : selectedEvent.categories,
       interested_count:
-        liveInterestedCount ?? (Number(selectedEvent?.interested_count) || 0), // changed: fixed parse error and uses updated interested count
-      best_location: location || "Manchester",
+        liveInterestedCount ?? (Number(selectedEvent?.interested_count) || 0),
+      best_location:
+        location || selectedEvent?.best_location || "Manchester", // added: keep popup pricing aligned with the card until the organiser chooses a different location
     };
 
     return estimateCost(eventForEstimate);
@@ -584,7 +745,15 @@ function Aisuggestions() {
     categories,
     location,
     liveInterestedCount,
-  ]); // changed: added liveInterestedCount dependency
+    noBudgetRequired, // added: update the preview immediately when the no-budget toggle changes
+  ]);
+
+  const LoadingIndicator = ({ text = "Loading..." }) => (
+    <div className="aisuggestions__loadingWrap">
+      <div className="aisuggestions__spinner"></div>
+      <span>{text}</span>
+    </div>
+  );
 
   return (
     <div className="aisuggestions__container">
@@ -602,7 +771,7 @@ function Aisuggestions() {
           <h3 className="aisuggestions__sectionTitle">Top Suggestions</h3>
 
           {isLoadingPopular ? (
-            <p className="aisuggestions__cardText">Loading suggestions...</p>
+            <LoadingIndicator text="Loading suggestions..." />
           ) : topSuggestions.length > 0 ? (
             topSuggestions.map((event, index) => {
               const costInfo = estimateCost(event);
@@ -635,7 +804,8 @@ function Aisuggestions() {
                             : event.category_name
                             ? [event.category_name]
                             : [],
-                          Number(event.interested_count) || 0
+                          Number(event.interested_count) || 0,
+                          event.best_location // added: keep the original suggestion location when opening the popup
                         )
                       }
                     >
@@ -660,7 +830,7 @@ function Aisuggestions() {
           </h3>
 
           {isLoadingPopular ? (
-            <p className="aisuggestions__cardText">Loading event...</p>
+            <LoadingIndicator text="Loading event..." />
           ) : nicheSuggestion ? (
             <div className="aisuggestions__nicheCard">
               <div className="aisuggestions__cardHeader">
@@ -687,7 +857,8 @@ function Aisuggestions() {
                         : nicheSuggestion.category_name
                         ? [nicheSuggestion.category_name]
                         : [],
-                      Number(nicheSuggestion.interested_count) || 0
+                      Number(nicheSuggestion.interested_count) || 0,
+                      nicheSuggestion.best_location // added: keep the original niche suggestion location when opening the popup
                     )
                   }
                 >
@@ -760,7 +931,14 @@ function Aisuggestions() {
                   onClick={handleGenerateIdea}
                   disabled={isGenerating}
                 >
-                  {isGenerating ? "Generating..." : "Generate Idea"}
+                  {isGenerating ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Generating...
+                    </>
+                  ) : (
+                    "Generate Idea"
+                  )}
                 </button>
 
                 {generatedIdea && (
@@ -846,10 +1024,15 @@ function Aisuggestions() {
 
                 <p>
                   <strong>Interested Members:</strong>{" "}
-                  {isLoadingInterestedCount
-                    ? "Updating..."
-                    : (liveInterestedCount ??
-                        (Number(selectedEvent?.interested_count) || 0))}
+                  {isLoadingInterestedCount ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Updating...
+                    </>
+                  ) : (
+                    liveInterestedCount ??
+                    (Number(selectedEvent?.interested_count) || 0)
+                  )}
                 </p>
 
                 {selectedEventCostPreview && (
@@ -858,6 +1041,33 @@ function Aisuggestions() {
                     {selectedEventCostPreview.label}
                   </p>
                 )}
+
+                <div className="aisuggestions__formGroup">
+                  <label className="aisuggestions__label">
+                    Budget Handling
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Tick this if the event is free, self-funded, or does not need an organiser budget.
+                  </p>
+
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      fontSize: "0.95rem",
+                      color: "#0B0033",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={noBudgetRequired}
+                      onChange={(e) => setNoBudgetRequired(e.target.checked)} // added: let the organiser override the estimate when no company budget is needed
+                    />
+                    No organiser budget needed
+                  </label>
+                </div>
 
                 <div
                   className={`aisuggestions__formGroup ${
@@ -879,6 +1089,33 @@ function Aisuggestions() {
                     min={today}
                     className="aisuggestions__input"
                   />
+                </div>
+
+                <div
+                  className={`aisuggestions__formGroup ${
+                    showErrorHint && !time ? "aisuggestions__error" : ""
+                  }`}
+                >
+                  <label className="aisuggestions__label">
+                    Select Event Time
+                  </label>
+
+                  <p className="aisuggestions__helperText">
+                    Choose a start time for the event
+                  </p>
+
+                  <select
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="aisuggestions__input"
+                  >
+                    <option value="">Choose a time</option>
+                    {timeOptions.map((timeOption) => (
+                      <option key={timeOption} value={timeOption}>
+                        {formatTimeLabel(timeOption)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div
@@ -907,6 +1144,99 @@ function Aisuggestions() {
                     <option value="Birmingham">Birmingham</option>
                   </select>
                 </div>
+
+                <button
+                  type="button"
+                  className="aisuggestions__generateButton"
+                  onClick={handleSuggestLocations}
+                  disabled={isLoadingLocationSuggestions}
+                >
+                  {isLoadingLocationSuggestions ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Finding venue suggestions...
+                    </>
+                  ) : (
+                    "Suggest Real Venues"
+                  )}
+                </button>
+
+                {suggestedLocations.length > 0 && (
+                  <div className="aisuggestions__formGroup">
+                    <label className="aisuggestions__label">
+                      Suggested Venues
+                    </label>
+
+                    <p className="aisuggestions__helperText">
+                      These are live venue suggestions matched to this event idea
+                      and selected city.
+                    </p>
+
+                    {suggestedLocations.map((place, index) => {
+                      const isSelected = selectedVenue?.name === place.name;
+
+                      return (
+                        <div
+                          key={`${place.name}-${index}`}
+                          className="aisuggestions__card"
+                          style={{
+                            borderColor: isSelected ? "#9333ea" : undefined,
+                            boxShadow: isSelected
+                              ? "0 0 0 2px rgba(147, 51, 234, 0.15)"
+                              : undefined,
+                          }}
+                        >
+                          <div className="aisuggestions__cardHeader">
+                            <div className="aisuggestions__cardBody">
+                              <strong className="aisuggestions__cardTitle">
+                                {place.name}
+                              </strong>
+                              <p className="aisuggestions__cardText">
+                                {place.address}
+                                <br />
+                                {place.why_it_fits}
+                                {place.requires_booking === false && (
+                                  <>
+                                    <br />
+                                    No advance booking usually needed.
+                                  </>
+                                )}
+                                {place.booking_url && (
+                                  <>
+                                    <br />
+                                    <a
+                                      href={place.booking_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Book venue
+                                    </a>
+                                  </>
+                                )}
+                                <br />
+                                <em>{place.source_hint}</em>
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="aisuggestions__cardButton"
+                              onClick={() => setSelectedVenue(place)}
+                            >
+                              {isSelected ? "Selected" : "Use Venue"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {selectedVenue && (
+                      <p className="aisuggestions__helperText">
+                        Selected venue: <strong>{selectedVenue.name}</strong>
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div
                   className={`aisuggestions__formGroup ${
@@ -1014,7 +1344,14 @@ function Aisuggestions() {
                   onClick={handleSubmit}
                   disabled={!canSubmit}
                 >
-                  {isSubmitting ? "Saving..." : "Schedule Event"}
+                  {isSubmitting ? (
+                    <>
+                      <span className="aisuggestions__spinnerSmall"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    "Schedule Event"
+                  )}
                 </button>
               </>
             ) : (

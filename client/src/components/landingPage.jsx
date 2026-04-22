@@ -21,7 +21,7 @@ function LandingPage({ setIsEO, setName, setUserEventEmail }) {
     async function checkDetails() {
         //call the database to see if user acount exists
         const userAccountDetails = await fetch(
-            "https://third-space-backend-sjay.onrender.com/api/auth/login",
+            "http://localhost:3000/api/auth/login",
             {
                 method: "POST",
                 headers: {
@@ -87,11 +87,12 @@ function LandingPage({ setIsEO, setName, setUserEventEmail }) {
                 </div>
             </div>
             <div className="picture-side"> 
-            <img src="/third_space_logo.png" alt="Logo" className="landingLogo"/>
-
+                <img src="/third_space_logoo.gif" alt="Logo" className="landingLogo" />
+                <p className="landingSlogan">Insights that find their place</p>
             </div>
         </div>
     );
 }
 
 export default LandingPage;
+

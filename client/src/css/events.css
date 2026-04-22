@@ -46,3 +46,63 @@
 .events-footer .join-button:hover {
     background-color: #9333ea;
 }
+
+/* modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(11, 0, 51, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* modal box */
+.modal-box {
+    background-color: #ffffff;
+    border: 1.5px solid #e9d5ff;
+    border-radius: 14px;
+    padding: 1.5rem 2rem;
+    width: 320px;
+    text-align: center;
+}
+
+/* modal title */
+.modal-box h2 {
+    color: #0B0033;
+    margin-bottom: 0.5rem;
+}
+
+/* modal text */
+.modal-box p {
+    color: #9333ea;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* buttons */
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* cancel button */
+.cancel-button {
+    border-radius: 8px;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background-color: #e9d5ff;
+    color: #0B0033;
+    border: none;
+    font-weight: 600;
+}
+
+.cancel-button:hover {
+    background-color: #d8b4fe;
+}

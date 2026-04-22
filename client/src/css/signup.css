@@ -27,8 +27,13 @@
 }
 
 .signup-right {
-    width: 71%;
+    width: 70%;
     background-color: #0B0033;
+    display: flex; /* added layout for logo area */
+    flex-direction: column; /* added layout for logo area */
+    justify-content: center; /* added layout for logo area */
+    align-items: center; /* added layout for logo area */
+    gap: 1rem; /* added spacing between logo and slogan */
 }
 
 .signup-block {
@@ -168,3 +173,18 @@
 .signup-btn:hover {
     background-color: #9333ea;
 }
+
+.signupLogo {
+    height: 250px;
+    margin-top: -100px;
+} /* added logo size */
+
+.signupSlogan {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: 0.04em;
+} /* added slogan style */
+

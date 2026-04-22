@@ -13,14 +13,22 @@ class HomePageEvents {
         //console.log(`hello ${user_email}`);
 
         const query = `
-        SELECT e.*, TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date ,er.id AS registration_id
+        SELECT 
+            e.*, 
+            TO_CHAR(e.event_date, 'DD/MM/YYYY') AS event_date,
+            e.id AS registration_id
         FROM events e
-        JOIN event_registrations er ON e.id = er.event_id
-        WHERE er.user_email = $1
-        AND er.status = 'unresponsive'
-        ORDER BY e.created_at DESC
+        JOIN user_interests ui 
+            ON LOWER(TRIM(ui.interest_name)) = LOWER(TRIM(e.category_name))
+        LEFT JOIN event_registrations er
+            ON er.event_id = e.id
+            AND er.user_email = ui.user_email
+        WHERE ui.user_email = $1
+        AND e.event_date >= CURRENT_DATE
+        AND er.id IS NULL
+        ORDER BY e.event_date ASC, e.id ASC
         LIMIT 1;
-        `;
+        `; // changed: show the soonest matching event the user has not already joined
 
         const result = await db.query(query, [user_email]);
 
@@ -29,17 +37,18 @@ class HomePageEvents {
             return "No New Events!";
         }
         console.log(result.rows[0]);
-        return result.rows[0]; // latest event
+        return result.rows[0]; // soonest matching unjoined event
     }
 
-    static async joinEvent(eventRegistrationID) {
+    static async joinEvent(eventID, userEmail) {
         const result = await db.query(
-            `UPDATE event_registrations
-            SET status = 'registered'
-            WHERE id = $1
+            `INSERT INTO event_registrations (user_email, event_id, status)
+            VALUES ($1, $2, 'registered')
+            ON CONFLICT (user_email, event_id)
+            DO UPDATE SET status = 'registered'
             RETURNING *`,
-            [eventRegistrationID],
-        );
+            [userEmail, eventID],
+        ); // changed: joining now creates the registration row instead of updating an existing unresponsive row
 
         return result.rows[0];
     }
@@ -57,7 +66,7 @@ class HomePageEvents {
         WHERE er.user_email = $1
         AND er.status = 'registered'
         AND e.event_date >= CURRENT_DATE
-        ORDER BY e.event_date ASC
+        ORDER BY e.event_date ASC, e.id ASC
         LIMIT 1;`;
 
         const result = await db.query(query, [user_email]);
@@ -67,13 +76,12 @@ class HomePageEvents {
             return "No Upcoming Events!";
         }
         console.log(result.rows[0]);
-        return result.rows[0]; // next event
+        return result.rows[0]; // next joined event
     }
 
     static async recentPastEvent(userEmail) {
         const query = `
-    WITH latest_event AS (
-        SELECT 
+            SELECT 
             e.id AS event_id,
             e.title, 
             e.event_date, 
@@ -81,19 +89,16 @@ class HomePageEvents {
         FROM event_registrations er
         JOIN events e ON er.event_id = e.id
         WHERE er.user_email = $1
-          AND er.status = 'attended'
-          AND e.event_date < CURRENT_DATE
+        AND er.status = 'attended'
+        AND e.event_date < CURRENT_DATE
+        AND NOT EXISTS (
+            SELECT 1
+            FROM feedback f
+            WHERE f.user_email = $1
+                AND f.event_id = e.id
+        )
         ORDER BY e.event_date DESC
-        LIMIT 1
-    )
-    SELECT *
-    FROM latest_event le
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM feedback f
-        WHERE f.user_email = $1
-          AND f.event_id = le.event_id
-    );
+        LIMIT 1;
     `;
 
         const result = await db.query(query, [userEmail]);

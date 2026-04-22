@@ -20,7 +20,7 @@ function Profile() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await fetch(`https://third-space-backend-sjay.onrender.com/api/auth/profile/${userEmail}`)
+                const response = await fetch(`http://localhost:3000/api/auth/profile/${userEmail}`)
                 const data = await response.json()
 
                 setLocation(data.officeLocation || "")
@@ -51,7 +51,7 @@ function Profile() {
         }
 
         try {
-            const response = await fetch(`https://third-space-backend-sjay.onrender.com/api/auth/profile/${userEmail}`, {
+            const response = await fetch(`http://localhost:3000/api/auth/profile/${userEmail}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
