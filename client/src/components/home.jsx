@@ -50,7 +50,7 @@ function Home({ name, userEventEmail }) {
     useEffect(() => {
         async function getPastEvent() {
             const pastEvent = await fetch(
-                `http://localhost:3000/api/home/pastEvent/${userEventEmail}`, // changed: use the same local backend as Aisuggestions.jsx
+                `http://localhost:3000/api/home/pastEvent/${userEventEmail}`,
             );
             const data = await pastEvent.json();
             setPastEventTitle(data.title || data);
@@ -76,7 +76,7 @@ function Home({ name, userEventEmail }) {
 
         async function newEvent() {
             const res = await fetch(
-                `http://localhost:3000/api/home/newEvent/${userEventEmail}`, // changed: use the same local backend as Aisuggestions.jsx
+                `http://localhost:3000/api/home/newEvent/${userEventEmail}`,
             );
             const data = await res.json();
 
@@ -94,7 +94,7 @@ function Home({ name, userEventEmail }) {
 
         async function nextEvent() {
             const res = await fetch(
-                `http://localhost:3000/api/home/nextEvent/${userEventEmail}`, // changed: use the same local backend as Aisuggestions.jsx
+                `http://localhost:3000/api/home/nextEvent/${userEventEmail}`,
             );
             const data = await res.json();
 
@@ -118,7 +118,7 @@ function Home({ name, userEventEmail }) {
         setRating(starValue);
 
         const updateReview = await fetch(
-            `http://localhost:3000/api/home/pastEvent/`, // changed: use the same local backend as Aisuggestions.jsx
+            `http://localhost:3000/api/home/pastEvent/`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -136,16 +136,9 @@ function Home({ name, userEventEmail }) {
 
     async function joinEvent() {
         const updateAttendance = await fetch(
-            `http://localhost:3000/api/home/newEvent/${registrationID}`, // changed: use the same local backend as Aisuggestions.jsx
-            {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: userEventEmail,
-                }),
-            },
-        ); // changed: send the user's email because joining now creates a new registration row
-
+            `http://localhost:3000/api/home/newEvent/${registrationID}`,
+            { method: "PATCH" },
+        );
         console.log(updateAttendance);
         setRefresh((prev) => prev + 1);
     }
